@@ -98,7 +98,14 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                   return Center(child: CircularProgressIndicator());
                 }
 
+                // Mengurutkan data berdasarkan NIM
                 final students = snapshot.data!.docs;
+                final sortedStudents = students.toList()
+                  ..sort((a, b) {
+                    final nimA = (a.data() as Map<String, dynamic>)['nim'] ?? '';
+                    final nimB = (b.data() as Map<String, dynamic>)['nim'] ?? '';
+                    return nimA.compareTo(nimB);
+                  });
 
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -109,7 +116,7 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                       DataColumn(label: Text('Kelas')),
                       DataColumn(label: Text('Keterangan')),
                     ],
-                    rows: students.map((student) {
+                    rows: sortedStudents.map((student) {
                       final data = student.data() as Map<String, dynamic>;
                       final studentId = student.id;
 
