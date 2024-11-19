@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class CreatePertemuanPage extends StatefulWidget {
   final String classId;
@@ -46,8 +47,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
       // Simpan absensi ke Firestore
       await FirebaseFirestore.instance.collection('attendances').add({
         'classId': widget.classId,
-        'date': _selectedDate, // Timestamp
-        'attendanceDetails': _attendanceStatus, // Map<String, String>
+        'date': _selectedDate,
+        'attendanceDetails': _attendanceStatus,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +66,16 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Buat Pertemuan - ${widget.className}'),
+        backgroundColor: Colors.blueGrey[900],
+        elevation: 0,
+        title: Text(
+          'Buat Pertemuan',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.calendar_month),
@@ -79,12 +89,28 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
       ),
       body: Column(
         children: [
+          // Nama kelas
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Text(
+              '${widget.className}',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          // Tanggal pertemuan
           if (_selectedDate != null)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
               child: Text(
                 'Tanggal Pertemuan: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blueGrey[800],
+                ),
               ),
             ),
           Expanded(
@@ -110,11 +136,17 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
+                    border: TableBorder.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    columnSpacing: 12.0,
                     columns: [
-                      DataColumn(label: Text('NIM')),
-                      DataColumn(label: Text('Nama')),
-                      DataColumn(label: Text('Kelas')),
-                      DataColumn(label: Text('Keterangan')),
+                      DataColumn(label: Text('NIM', style: GoogleFonts.poppins())),
+                      DataColumn(label: Text('Nama', style: GoogleFonts.poppins())),
+                      DataColumn(label: Text('Kelas', style: GoogleFonts.poppins())),
+                      DataColumn(
+                          label: Text('Keterangan', style: GoogleFonts.poppins())),
                     ],
                     rows: sortedStudents.map((student) {
                       final data = student.data() as Map<String, dynamic>;
@@ -122,16 +154,20 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
 
                       return DataRow(
                         cells: [
-                          DataCell(Text(data['nim'] ?? 'N/A')),
-                          DataCell(Text(data['name'] ?? 'N/A')),
-                          DataCell(Text(data['kelas'] ?? 'N/A')),
+                          DataCell(Text(data['nim'] ?? 'N/A',
+                              style: GoogleFonts.poppins())),
+                          DataCell(Text(data['name'] ?? 'N/A',
+                              style: GoogleFonts.poppins())),
+                          DataCell(Text(data['kelas'] ?? 'N/A',
+                              style: GoogleFonts.poppins())),
                           DataCell(
                             DropdownButton<String>(
                               value: _attendanceStatus[studentId] ?? 'Hadir',
                               items: ['Hadir', 'Alpha', 'Sakit', 'Izin']
                                   .map((status) => DropdownMenuItem(
                                         value: status,
-                                        child: Text(status),
+                                        child: Text(status,
+                                            style: GoogleFonts.poppins()),
                                       ))
                                   .toList(),
                               onChanged: (value) {

@@ -63,117 +63,196 @@ class DosenHomePage extends StatelessWidget {
     }
   }
 
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Konfirmasi Logout', style: GoogleFonts.poppins()),
+        content: Text(
+          'Apakah Anda yakin ingin logout?',
+          style: GoogleFonts.poppins(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Batal', style: GoogleFonts.poppins()),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text('Logout', style: GoogleFonts.poppins()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm ?? false) {
+      _logout(context);
+    }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal logout. Silakan coba lagi.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard Dosen', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('classes')
-            .where('dosenId', isEqualTo: dosenId)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final classes = snapshot.data!.docs;
-
-          if (classes.isEmpty) {
-            return Center(
-              child: Text(
-                'Belum ada mata kuliah.',
-                style: GoogleFonts.poppins(fontSize: 18, color: Colors.grey),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade300, Colors.blue.shade900],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Column(
+          children: [
+            // Custom AppBar with Gradient
+            Container(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blueAccent, Colors.indigo],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
               ),
-            );
-          }
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // Jumlah kolom dalam grid
-                crossAxisSpacing: 8.0,
-                mainAxisSpacing: 8.0,
-                childAspectRatio: 0.75, // Rasio lebar-tinggi tiap grid
+              child: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                title: Text(
+                  'Dashboard Dosen',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                centerTitle: true,
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.logout, color: Colors.white),
+                    tooltip: 'Logout',
+                    onPressed: () => _confirmLogout(context),
+                  ),
+                ],
               ),
-              itemCount: classes.length,
-              itemBuilder: (context, index) {
-                final classData = classes[index];
+            ),
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('classes')
+                    .where('dosenId', isEqualTo: dosenId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ManageStudentPage(
-                          classId: classData.id,
-                          className: classData['className'],
-                        ),
+                  final classes = snapshot.data!.docs;
+
+                  if (classes.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'Belum ada mata kuliah.',
+                        style: GoogleFonts.poppins(fontSize: 18, color: Colors.white70),
                       ),
                     );
-                  },
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  }
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(8.0),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 8.0,
+                      mainAxisSpacing: 8.0,
+                      childAspectRatio: 0.85,
                     ),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Icon(
-                            Icons.class_,
-                            size: 60,
-                            color: Colors.blue,
-                          ),
-                          Text(
-                            classData['className'],
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                    itemCount: classes.length,
+                    itemBuilder: (context, index) {
+                      final classData = classes[index];
+
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ManageStudentPage(
+                                classId: classData.id,
+                                className: classData['className'],
+                              ),
                             ),
-                            textAlign: TextAlign.center,
+                          );
+                        },
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Text(
-                            'Jumlah Mahasiswa: ${classData['students'].length}',
-                            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
-                            textAlign: TextAlign.center,
+                          elevation: 4,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Icon(
+                                  Icons.class_,
+                                  size: 39,
+                                  color: Colors.blue,
+                                ),
+                                Text(
+                                  classData['className'],
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Text(
+                                  'Jumlah Mahasiswa: ${classData['students'].length}',
+                                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+                                  textAlign: TextAlign.center,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.edit, color: Colors.blue),
+                                      tooltip: 'Edit Nama',
+                                      onPressed: () => _editClass(context, classData.id, classData['className']),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete, color: Colors.red),
+                                      tooltip: 'Hapus Kelas',
+                                      onPressed: () => _deleteClass(context, classData.id, classData['className']),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
-                                tooltip: 'Edit Nama',
-                                onPressed: () => _editClass(context, classData.id, classData['className']),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                tooltip: 'Hapus Kelas',
-                                onPressed: () => _deleteClass(context, classData.id, classData['className']),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addClass(context),
         child: Icon(Icons.add),
         tooltip: 'Tambah Mata Kuliah',
+        backgroundColor: Colors.blueAccent,
       ),
     );
   }
