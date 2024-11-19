@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "9649090669",
+    "project_id": "attedance-app-group-5",
+    "storage_bucket": "attedance-app-group-5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:9649090669:android:69e794a8cea2febaad4f64",
+        "android_client_info": {
+          "package_name": "com.example.proyek_pam_kel5"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMs_uxExLW9uXdQtcSHRznqa064usqBJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

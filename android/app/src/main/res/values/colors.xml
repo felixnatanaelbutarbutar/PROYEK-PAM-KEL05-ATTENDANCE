@@ -1,0 +1,4 @@
+<resources>
+    <!-- Define the notification color -->
+    <color name="notification_color">#FF0000</color> <!-- Sesuaikan warna sesuai kebutuhan Anda -->
+</resources>

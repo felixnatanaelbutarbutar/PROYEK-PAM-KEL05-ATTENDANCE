@@ -1,0 +1,57 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // Flutter Gradle Plugin
+    id "dev.flutter.flutter-gradle-plugin"
+    // Google Services Plugin
+    id "com.google.gms.google-services" // Tidak perlu `apply false` jika digunakan di file ini
+}
+
+android {
+    namespace = "com.example.proyek_pam_kel5"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    defaultConfig {
+        applicationId = "com.example.proyek_pam_kel5"
+        minSdk = 23
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+            // Menghapus debuggable flag agar build release lebih bersih
+            debuggable false
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    // Firebase BoM untuk sinkronisasi versi produk Firebase
+    implementation platform("com.google.firebase:firebase-bom:33.6.0")
+
+    // Firebase Analytics (contoh produk Firebase)
+    implementation "com.google.firebase:firebase-analytics"
+
+    // Tambahkan dependensi Firebase lainnya jika diperlukan:
+    // implementation "com.google.firebase:firebase-auth"
+    // implementation "com.google.firebase:firebase-firestore"
+}
+
+apply plugin: "com.google.gms.google-services"
