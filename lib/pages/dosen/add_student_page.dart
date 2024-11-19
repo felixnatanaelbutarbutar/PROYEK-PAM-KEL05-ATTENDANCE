@@ -19,6 +19,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
   final Map<String, bool> _selectedStudents = {};
   String _selectedKelas = 'Semua'; // Default untuk filter kelas
   final List<String> _kelasOptions = ['Semua', '31TI1', '31TI2', '31TI3'];
+  bool _selectAll = false;
 
   Future<List<Map<String, dynamic>>> _fetchStudents() async {
     try {
@@ -33,7 +34,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
 
       final querySnapshot = await query.get();
       return querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>?? {};
+        final data = doc.data() as Map<String, dynamic>? ?? {};
         return {
           'id': doc.id,
           'nim': data['nim'] ?? 'N/A',
@@ -69,6 +70,18 @@ class _AddStudentPageState extends State<AddStudentPage> {
     });
 
     Navigator.pop(context);
+  }
+
+  void _toggleSelectAll(bool? value, List<Map<String, dynamic>> students) {
+    setState(() {
+      _selectAll = value ?? false;
+      for (var student in students) {
+        final studentId = student['id'];
+        if (studentId != null) {
+          _selectedStudents[studentId] = _selectAll;
+        }
+      }
+    });
   }
 
   Widget _buildFilterDropdown() {
@@ -128,7 +141,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
                   return Center(child: Text('Tidak ada mahasiswa yang tersedia.'));
                 }
 
-                // Inisialisasi selected students with null check
+                // Inisialisasi selected students dengan null check
                 for (var student in students) {
                   final studentId = student['id'];
                   if (studentId != null) {
@@ -139,15 +152,27 @@ class _AddStudentPageState extends State<AddStudentPage> {
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
+                    columnSpacing: 12.0, // Memperkecil jarak antar kolom
                     columns: [
                       DataColumn(label: Text('NIM')),
                       DataColumn(label: Text('Nama')),
                       DataColumn(label: Text('Angkatan')),
                       DataColumn(label: Text('Kelas')),
                       DataColumn(label: Text('Asrama')),
-                      DataColumn(label: Text('Pilih')),
+                      DataColumn(
+                        label: Row(
+                          children: [
+                            Text('Pilih Semua'),
+                            Checkbox(
+                              value: _selectAll,
+                              onChanged: (value) => _toggleSelectAll(value, students),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                     rows: students.map((student) {
+                      final studentId = student['id'];
                       return DataRow(
                         cells: [
                           DataCell(Text(student['nim'] ?? 'N/A')),
@@ -157,14 +182,11 @@ class _AddStudentPageState extends State<AddStudentPage> {
                           DataCell(Text(student['asrama'] ?? 'N/A')),
                           DataCell(
                             Checkbox(
-                              value: _selectedStudents[student['id']] ?? false,
+                              value: _selectedStudents[studentId] ?? false,
                               onChanged: (isChecked) {
-                                final studentId = student['id'];
-                                if (studentId != null) {
-                                  setState(() {
-                                    _selectedStudents[studentId] = isChecked ?? false;
-                                  });
-                                }
+                                setState(() {
+                                  _selectedStudents[studentId] = isChecked ?? false;
+                                });
                               },
                             ),
                           ),
