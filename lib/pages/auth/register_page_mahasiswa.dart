@@ -98,129 +98,220 @@ class _RegisterMahasiswaPageState extends State<RegisterMahasiswaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Register Mahasiswa'),
+        backgroundColor: Colors.blue.shade900,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Register Mahasiswa',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _nimController,
-                decoration: InputDecoration(
-                  labelText: 'NIM',
-                  prefixIcon: Icon(Icons.badge),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.blue.shade300, Colors.blue.shade900],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
                   ),
-                ),
+                ],
               ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nama',
-                  prefixIcon: Icon(Icons.person),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _angkatanController,
-                decoration: InputDecoration(
-                  labelText: 'Angkatan',
-                  prefixIcon: Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: _selectedKelas,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedKelas = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Kelas',
-                  prefixIcon: Icon(Icons.class_),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                items: _kelasOptions.map((kelas) {
-                  return DropdownMenuItem(
-                    value: kelas,
-                    child: Text(kelas),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: _selectedAsrama,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedAsrama = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  labelText: 'Asrama',
-                  prefixIcon: Icon(Icons.home),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                items: _asramaOptions.map((asrama) {
-                  return DropdownMenuItem(
-                    value: asrama,
-                    child: Text(asrama),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-              ),
-              SizedBox(height: 30),
-              _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _registerMahasiswa,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 100, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Text(
+                      'Register Mahasiswa',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade900,
                       ),
-                      child: Text('Register Mahasiswa',
-                          style: TextStyle(fontSize: 18)),
                     ),
-            ],
+                  ),
+                  SizedBox(height: 30),
+                  TextField(
+                    controller: _nimController,
+                    decoration: InputDecoration(
+                      labelText: 'NIM',
+                      prefixIcon:
+                          Icon(Icons.badge, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama',
+                      prefixIcon:
+                          Icon(Icons.person, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _angkatanController,
+                    decoration: InputDecoration(
+                      labelText: 'Angkatan',
+                      prefixIcon: Icon(Icons.calendar_today,
+                          color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    value: _selectedKelas,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedKelas = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Kelas',
+                      prefixIcon:
+                          Icon(Icons.class_, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                    items: _kelasOptions.map((kelas) {
+                      return DropdownMenuItem(
+                        value: kelas,
+                        child: Text(kelas),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    value: _selectedAsrama,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedAsrama = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Asrama',
+                      prefixIcon: Icon(Icons.home, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                    items: _asramaOptions.map((asrama) {
+                      return DropdownMenuItem(
+                        value: asrama,
+                        child: Text(asrama),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      prefixIcon:
+                          Icon(Icons.email, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: Icon(Icons.lock, color: Colors.blue.shade700),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide:
+                            BorderSide(color: Colors.blue.shade700, width: 2),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 30),
+                  _isLoading
+                      ? Center(
+                          child: CircularProgressIndicator(
+                              color: Colors.blue.shade700))
+                      : Container(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _registerMahasiswa,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor: Colors.blue.shade900,
+                            ),
+                            child: Text(
+                              'Register Mahasiswa',
+                              style:
+                                  TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
