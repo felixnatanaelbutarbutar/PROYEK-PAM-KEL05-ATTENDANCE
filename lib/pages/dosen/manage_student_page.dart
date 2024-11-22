@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'add_student_page.dart';
 import 'create_pertemuan_page.dart';
 import 'detail_mahasiswa.dart';
+import 'detail_pertemuan.dart';
 
 class ManageStudentPage extends StatefulWidget {
   final String classId;
@@ -81,27 +82,18 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        automaticallyImplyLeading: true, // Hilangkan back button -> flase
-        backgroundColor: Colors.blueGrey[900], 
+        backgroundColor: Colors.blueGrey[900],
         elevation: 0,
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            'Kelola Mahasiswa',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.white,
-            ),
+        title: Text(
+          'Kelola Mahasiswa',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_today),
-            tooltip: 'Buat Pertemuan',
-            onPressed: _createPertemuan,
-          ),
           IconButton(
             icon: Icon(Icons.person_add),
             tooltip: 'Tambah Mahasiswa',
@@ -115,7 +107,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           // Header untuk nama kelas
           Container(
             width: double.infinity,
-            color: Colors.blueGrey[900], // Sama dengan AppBar
+            color: Colors.blueGrey[900],
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
             child: Text(
               '${widget.className}',
@@ -126,6 +118,23 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               ),
             ),
           ),
+          // Tombol Buat Pertemuan
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: ElevatedButton.icon(
+              onPressed: _createPertemuan,
+              icon: Icon(Icons.calendar_today),
+              label: Text(
+                'Buat Pertemuan',
+                style: GoogleFonts.poppins(fontSize: 16),
+              ),
+              style: ElevatedButton.styleFrom(
+                  // primary: Colors.blueGrey[900],
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              ),
+            ),
+          ),
+          // Tabel Daftar Mahasiswa
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
@@ -153,6 +162,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                   );
                 }
 
+                
                 return StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('users')
@@ -177,86 +187,59 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: Container(
-                        margin: EdgeInsets.all(10),
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
+                      child: DataTable(
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.blueGrey[900],
                         ),
-                        child: DataTable(
-                          headingTextStyle: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.blueGrey[900],
-                          ),
-                          dataTextStyle: GoogleFonts.poppins(fontSize: 13),
-                          columnSpacing: 20.0,
-                          headingRowColor: MaterialStateColor.resolveWith(
-                            (states) => Colors.blueGrey[100]!,
-                          ),
-                          columns: [
-                            DataColumn(label: Text('NIM')),
-                            DataColumn(label: Text('Nama')),
-                            DataColumn(label: Text('Kelas')),
-                            DataColumn(label: Text('Angkatan')),
-                            DataColumn(label: Text('Aksi')),
-                          ],
-                          rows: sortedStudents.map((student) {
-                            final data =
-                                student.data() as Map<String, dynamic>;
-                            final studentId = student.id;
+                        dataTextStyle: GoogleFonts.poppins(fontSize: 13),
+                        columnSpacing: 20.0,
+                        headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.blueGrey[100]!,
+                        ),
+                        columns: [
+                          DataColumn(label: Text('NIM')),
+                          DataColumn(label: Text('Nama')),
+                          DataColumn(label: Text('Kelas')),
+                          DataColumn(label: Text('Angkatan')),
+                          DataColumn(label: Text('Aksi')),
+                        ],
+                        rows: sortedStudents.map((student) {
+                          final data =
+                              student.data() as Map<String, dynamic>;
+                          final studentId = student.id;
 
-                            return DataRow(
-                              color: MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  return states.contains(MaterialState.selected)
-                                      ? Colors.blueGrey[50]
-                                      : null; // Alternating row colors
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(data['nim'] ?? 'N/A')),
+                              DataCell(
+                                Text(data['name'] ?? 'N/A'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailMahasiswaPage(
+                                        studentId: studentId,
+                                      ),
+                                    ),
+                                  );
                                 },
                               ),
-                              cells: [
-                                DataCell(Text(data['nim'] ?? 'N/A')),
-                                DataCell(
-                                  Text(data['name'] ?? 'N/A'),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DetailMahasiswaPage(
-                                          studentId: studentId,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                              DataCell(Text(data['kelas'] ?? 'N/A')),
+                              DataCell(Text(data['angkatan'] ?? 'N/A')),
+                              DataCell(
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  tooltip: 'Hapus',
+                                  onPressed: () =>
+                                      _removeStudent(studentId),
                                 ),
-                                DataCell(Text(data['kelas'] ?? 'N/A')),
-                                DataCell(Text(data['angkatan'] ?? 'N/A')),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.delete,
-                                            color: Colors.red),
-                                        tooltip: 'Hapus',
-                                        onPressed: () =>
-                                            _removeStudent(studentId),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
                       ),
                     );
                   },
@@ -264,13 +247,74 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               },
             ),
           ),
+          // Daftar Pertemuan
+          
+          
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('classes')
+                .doc(widget.classId)
+                .collection('pertemuan')
+                .snapshots(),
+            builder: (context, pertemuanSnapshot) {
+              if (!pertemuanSnapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              final pertemuanDocs = pertemuanSnapshot.data!.docs;
+
+              if (pertemuanDocs.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text(
+                    'Belum ada pertemuan yang dibuat.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                );
+              }
+
+              return Expanded(
+                child: ListView.builder(
+                  itemCount: pertemuanDocs.length,
+                  itemBuilder: (context, index) {
+                    final pertemuan = pertemuanDocs[index];
+                    final pertemuanData =
+                        pertemuan.data() as Map<String, dynamic>;
+
+                    return ListTile(
+                      title: Text(
+                        'Pertemuan: ${pertemuanData['tanggal'] ?? 'N/A'}',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Hadir: ${pertemuanData['hadir'] ?? 0}, Absen: ${pertemuanData['absen'] ?? 0}',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailPertemuanPage(
+                              pertemuanId: pertemuan.id,
+                              classId: widget.classId,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addStudent,
-        child: Icon(Icons.person_add),
-        tooltip: 'Tambah Mahasiswa',
-        backgroundColor: Colors.blueGrey[900],
       ),
     );
   }

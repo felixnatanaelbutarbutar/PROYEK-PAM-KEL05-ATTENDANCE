@@ -36,31 +36,39 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
   }
 
   Future<void> _saveAttendance() async {
-    if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pilih tanggal terlebih dahulu')),
-      );
-      return;
-    }
-
-    try {
-      // Simpan absensi ke Firestore
-      await FirebaseFirestore.instance.collection('attendances').add({
-        'classId': widget.classId,
-        'date': _selectedDate,
-        'attendanceDetails': _attendanceStatus,
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pertemuan berhasil disimpan!')),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan absensi: $e')),
-      );
-    }
+  if (_selectedDate == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Pilih tanggal terlebih dahulu')),
+    );
+    return;
   }
+
+  try {
+    // Lokasi penyimpanan di Firestore
+    final pertemuanRef = FirebaseFirestore.instance
+        .collection('classes')
+        .doc(widget.classId)
+        .collection('pertemuan');
+
+    // Data yang disimpan
+    await pertemuanRef.add({
+      'tanggal': _selectedDate!.toIso8601String(), // Tanggal pertemuan
+      'attendanceDetails': _attendanceStatus, // Detail absensi
+      'hadir': _attendanceStatus.values.where((status) => status == 'Hadir').length,
+      'absen': _attendanceStatus.values.where((status) => status != 'Hadir').length,
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Pertemuan berhasil disimpan!')),
+    );
+    Navigator.pop(context); // Kembali ke halaman sebelumnya
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Gagal menyimpan absensi: $e')),
+    );
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
