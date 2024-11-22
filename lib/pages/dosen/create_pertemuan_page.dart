@@ -36,39 +36,38 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
   }
 
   Future<void> _saveAttendance() async {
-  if (_selectedDate == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Pilih tanggal terlebih dahulu')),
-    );
-    return;
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pilih tanggal terlebih dahulu')),
+      );
+      return;
+    }
+
+    try {
+      // Lokasi penyimpanan di Firestore
+      final pertemuanRef = FirebaseFirestore.instance
+          .collection('classes')
+          .doc(widget.classId)
+          .collection('pertemuan');
+
+      // Data yang disimpan
+      await pertemuanRef.add({
+        'tanggal': _selectedDate!.toIso8601String(), // Tanggal pertemuan
+        'attendanceDetails': _attendanceStatus, // Detail absensi
+        'hadir': _attendanceStatus.values.where((status) => status == 'Hadir').length,
+        'absen': _attendanceStatus.values.where((status) => status != 'Hadir').length,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pertemuan berhasil disimpan!')),
+      );
+      Navigator.pop(context); // Kembali ke halaman sebelumnya
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal menyimpan absensi: $e')),
+      );
+    }
   }
-
-  try {
-    // Lokasi penyimpanan di Firestore
-    final pertemuanRef = FirebaseFirestore.instance
-        .collection('classes')
-        .doc(widget.classId)
-        .collection('pertemuan');
-
-    // Data yang disimpan
-    await pertemuanRef.add({
-      'tanggal': _selectedDate!.toIso8601String(), // Tanggal pertemuan
-      'attendanceDetails': _attendanceStatus, // Detail absensi
-      'hadir': _attendanceStatus.values.where((status) => status == 'Hadir').length,
-      'absen': _attendanceStatus.values.where((status) => status != 'Hadir').length,
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Pertemuan berhasil disimpan!')),
-    );
-    Navigator.pop(context); // Kembali ke halaman sebelumnya
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Gagal menyimpan absensi: $e')),
-    );
-  }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -122,73 +121,106 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
               ),
             ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
+            child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .where('role', isEqualTo: 'mahasiswa')
+                  .collection('classes')
+                  .doc(widget.classId)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return Center(child: CircularProgressIndicator());
                 }
 
-                // Mengurutkan data berdasarkan NIM
-                final students = snapshot.data!.docs;
-                final sortedStudents = students.toList()
-                  ..sort((a, b) {
-                    final nimA = (a.data() as Map<String, dynamic>)['nim'] ?? '';
-                    final nimB = (b.data() as Map<String, dynamic>)['nim'] ?? '';
-                    return nimA.compareTo(nimB);
-                  });
+                final classData = snapshot.data!.data() as Map<String, dynamic>?;
+                final studentIds =
+                    classData?['students'] as List<dynamic>? ?? [];
 
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    border: TableBorder.all(
-                      color: Colors.grey.shade300,
-                      width: 1,
+                if (studentIds.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'Tidak ada mahasiswa di kelas ini.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
                     ),
-                    columnSpacing: 12.0,
-                    columns: [
-                      DataColumn(label: Text('NIM', style: GoogleFonts.poppins())),
-                      DataColumn(label: Text('Nama', style: GoogleFonts.poppins())),
-                      DataColumn(label: Text('Kelas', style: GoogleFonts.poppins())),
-                      DataColumn(
-                          label: Text('Keterangan', style: GoogleFonts.poppins())),
-                    ],
-                    rows: sortedStudents.map((student) {
-                      final data = student.data() as Map<String, dynamic>;
-                      final studentId = student.id;
+                  );
+                }
 
-                      return DataRow(
-                        cells: [
-                          DataCell(Text(data['nim'] ?? 'N/A',
-                              style: GoogleFonts.poppins())),
-                          DataCell(Text(data['name'] ?? 'N/A',
-                              style: GoogleFonts.poppins())),
-                          DataCell(Text(data['kelas'] ?? 'N/A',
-                              style: GoogleFonts.poppins())),
-                          DataCell(
-                            DropdownButton<String>(
-                              value: _attendanceStatus[studentId] ?? 'Hadir',
-                              items: ['Hadir', 'Alpha', 'Sakit', 'Izin']
-                                  .map((status) => DropdownMenuItem(
-                                        value: status,
-                                        child: Text(status,
-                                            style: GoogleFonts.poppins()),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _attendanceStatus[studentId] = value!;
-                                });
-                              },
-                            ),
-                          ),
+                return StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .where(FieldPath.documentId, whereIn: studentIds)
+                      .snapshots(),
+                  builder: (context, studentSnapshot) {
+                    if (!studentSnapshot.hasData) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    final students = studentSnapshot.data!.docs;
+
+                    // Mengurutkan data berdasarkan NIM secara ascending
+                    final sortedStudents = students.toList()
+                      ..sort((a, b) {
+                        final nimA =
+                            (a.data() as Map<String, dynamic>)['nim'] ?? '';
+                        final nimB =
+                            (b.data() as Map<String, dynamic>)['nim'] ?? '';
+                        return nimA.compareTo(nimB);
+                      });
+
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.blueGrey[900],
+                        ),
+                        dataTextStyle: GoogleFonts.poppins(fontSize: 13),
+                        columnSpacing: 20.0,
+                        headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.blueGrey[100]!,
+                        ),
+                        columns: [
+                          DataColumn(label: Text('NIM')),
+                          DataColumn(label: Text('Nama')),
+                          DataColumn(label: Text('Kelas')),
+                          DataColumn(label: Text('Keterangan')),
                         ],
-                      );
-                    }).toList(),
-                  ),
+                        rows: sortedStudents.map((student) {
+                          final data =
+                              student.data() as Map<String, dynamic>;
+                          final studentId = student.id;
+
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(data['nim'] ?? 'N/A')),
+                              DataCell(Text(data['name'] ?? 'N/A')),
+                              DataCell(Text(data['kelas'] ?? 'N/A')),
+                              DataCell(
+                                DropdownButton<String>(
+                                  value: _attendanceStatus[studentId] ?? 'Hadir',
+                                  items: ['Hadir', 'Alpha', 'Sakit', 'Izin']
+                                      .map((status) => DropdownMenuItem(
+                                            value: status,
+                                            child: Text(status,
+                                                style: GoogleFonts.poppins()),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _attendanceStatus[studentId] = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
                 );
               },
             ),
