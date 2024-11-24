@@ -119,7 +119,7 @@ Widget build(BuildContext context) {
                 ),
                 SizedBox(height: 20),
                 Text(
-                  'Attendance App',
+                  'DelCheckIn',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,

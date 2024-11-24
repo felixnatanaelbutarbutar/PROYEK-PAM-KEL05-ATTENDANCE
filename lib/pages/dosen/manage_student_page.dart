@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'add_student_page.dart';
-import 'create_pertemuan_page.dart';
+import 'daftar_pertemuan.dart';
+import 'create_pertemuan_page.dart';  // Pastikan Anda memiliki halaman ini
 import 'detail_mahasiswa.dart';
-import 'detail_pertemuan.dart';
 
 class ManageStudentPage extends StatefulWidget {
   final String classId;
@@ -53,18 +53,6 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
     }
   }
 
-  void _createPertemuan() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreatePertemuanPage(
-          classId: widget.classId,
-          className: widget.className,
-        ),
-      ),
-    );
-  }
-
   void _addStudent() {
     Navigator.push(
       context,
@@ -77,12 +65,41 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
     );
   }
 
+  void _openDaftarPertemuan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DaftarPertemuanPage(classId: widget.classId),
+      ),
+    );
+  }
+
+  void _createPertemuan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreatePertemuanPage(
+          classId: widget.classId,
+          className: widget.className,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.blueGrey[900],
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.indigo],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         title: Text(
           'Kelola Mahasiswa',
@@ -94,6 +111,11 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            tooltip: 'Daftar Pertemuan',
+            onPressed: _openDaftarPertemuan,
+          ),
           IconButton(
             icon: Icon(Icons.person_add),
             tooltip: 'Tambah Mahasiswa',
@@ -107,8 +129,14 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           // Header untuk nama kelas
           Container(
             width: double.infinity,
-            color: Colors.blueGrey[900],
             padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent, Colors.indigo],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             child: Text(
               '${widget.className}',
               style: GoogleFonts.poppins(
@@ -129,12 +157,11 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                 style: GoogleFonts.poppins(fontSize: 16),
               ),
               style: ElevatedButton.styleFrom(
-                  // primary: Colors.blueGrey[900],
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               ),
             ),
           ),
-          // Tabel Daftar Mahasiswa
+          // Daftar Mahasiswa
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
@@ -162,7 +189,6 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                   );
                 }
 
-                
                 return StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('users')
@@ -175,7 +201,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
 
                     final students = studentSnapshot.data!.docs;
 
-                    // Mengurutkan data berdasarkan NIM secara ascending
+                    // Mengurutkan mahasiswa berdasarkan NIM
                     final sortedStudents = students.toList()
                       ..sort((a, b) {
                         final nimA =
@@ -188,13 +214,13 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: DataTable(
+                        columnSpacing: 10.0, // Jarak antar kolom lebih rapat
                         headingTextStyle: GoogleFonts.poppins(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: Colors.blueGrey[900],
                         ),
                         dataTextStyle: GoogleFonts.poppins(fontSize: 13),
-                        columnSpacing: 20.0,
                         headingRowColor: MaterialStateColor.resolveWith(
                           (states) => Colors.blueGrey[100]!,
                         ),
@@ -246,73 +272,6 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                 );
               },
             ),
-          ),
-          // Daftar Pertemuan
-          
-          
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('classes')
-                .doc(widget.classId)
-                .collection('pertemuan')
-                .snapshots(),
-            builder: (context, pertemuanSnapshot) {
-              if (!pertemuanSnapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
-              }
-
-              final pertemuanDocs = pertemuanSnapshot.data!.docs;
-
-              if (pertemuanDocs.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    'Belum ada pertemuan yang dibuat.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-                );
-              }
-
-              return Expanded(
-                child: ListView.builder(
-                  itemCount: pertemuanDocs.length,
-                  itemBuilder: (context, index) {
-                    final pertemuan = pertemuanDocs[index];
-                    final pertemuanData =
-                        pertemuan.data() as Map<String, dynamic>;
-
-                    return ListTile(
-                      title: Text(
-                        'Pertemuan: ${pertemuanData['tanggal'] ?? 'N/A'}',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Text(
-                        'Hadir: ${pertemuanData['hadir'] ?? 0}, Absen: ${pertemuanData['absen'] ?? 0}',
-                        style: GoogleFonts.poppins(fontSize: 14),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailPertemuanPage(
-                              pertemuanId: pertemuan.id,
-                              classId: widget.classId,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              );
-            },
           ),
         ],
       ),
