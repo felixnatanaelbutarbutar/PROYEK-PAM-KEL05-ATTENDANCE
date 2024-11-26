@@ -18,44 +18,123 @@ class CreatePertemuanPage extends StatefulWidget {
 
 class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
   DateTime? _selectedDate;
+  String? _meetingTitle;
   Map<String, String> _attendanceStatus = {};
 
-  Future<void> _selectDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2025),
-    );
+  @override
+  void initState() {
+    super.initState();
+    // Pastikan dialog ditampilkan setelah build context selesai
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showPertemuanDialog();
+    });
+  }
 
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
+  Future<void> _showPertemuanDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            'Buat Pertemuan',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Input judul pertemuan
+              TextField(
+                decoration: InputDecoration(
+                  labelText: 'Judul Pertemuan',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _meetingTitle = value;
+                  });
+                },
+              ),
+              SizedBox(height: 15),
+              // Pilih tanggal pertemuan
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey[800],
+                  // colors: [Colors.blueAccent, Colors.indigo],
+                ),
+                onPressed: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2024),
+                    lastDate: DateTime(2025),
+                  );
+                  if (picked != null) {
+                    setState(() {
+                      _selectedDate = picked;
+                    });
+                  }
+                },
+                child: Text(
+                  _selectedDate == null
+                      ? 'Pilih Tanggal'
+                      : 'Tanggal: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
+                  style: GoogleFonts.poppins(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Batal', style: GoogleFonts.poppins()),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey[900],
+              ),
+              onPressed: () {
+                if (_meetingTitle == null || _meetingTitle!.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Judul pertemuan harus diisi')),
+                  );
+                  return;
+                }
+                if (_selectedDate == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Tanggal harus dipilih')),
+                  );
+                  return;
+                }
+                Navigator.pop(context);
+              },
+              child: Text('Simpan', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _saveAttendance() async {
-    if (_selectedDate == null) {
+    if (_meetingTitle == null || _selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pilih tanggal terlebih dahulu')),
+        SnackBar(content: Text('Lengkapi data pertemuan terlebih dahulu')),
       );
       return;
     }
 
     try {
-      // Lokasi penyimpanan di Firestore
       final pertemuanRef = FirebaseFirestore.instance
           .collection('classes')
           .doc(widget.classId)
           .collection('pertemuan');
 
-      // Data yang disimpan
+      // Simpan data pertemuan
       await pertemuanRef.add({
-        'tanggal': _selectedDate!.toIso8601String(), // Tanggal pertemuan
-        'attendanceDetails': _attendanceStatus, // Detail absensi
-        'hadir': _attendanceStatus.values.where((status) => status == 'Hadir').length,
-        'absen': _attendanceStatus.values.where((status) => status != 'Hadir').length,
+        'judul': _meetingTitle,
+        'tanggal': _selectedDate!.toIso8601String(),
+        'attendanceDetails':
+            _attendanceStatus, // Simpan data kehadiran per mahasiswa
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,7 +143,7 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
       Navigator.pop(context); // Kembali ke halaman sebelumnya
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan absensi: $e')),
+        SnackBar(content: Text('Gagal menyimpan data: $e')),
       );
     }
   }
@@ -73,8 +152,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueGrey[900],
-        elevation: 0,
+        backgroundColor: const Color.fromARGB(255, 4, 171,
+            255), // Warna disesuaikan dengan halaman Manage Student
         title: Text(
           'Buat Pertemuan',
           style: GoogleFonts.poppins(
@@ -85,10 +164,6 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.calendar_month),
-            onPressed: _selectDate,
-          ),
-          IconButton(
             icon: Icon(Icons.save),
             onPressed: _saveAttendance,
           ),
@@ -96,30 +171,31 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
       ),
       body: Column(
         children: [
-          // Nama kelas
           Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Text(
-              '${widget.className}',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Kelas: ${widget.className}',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Judul Pertemuan: ${_meetingTitle ?? "Belum diatur"}',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Tanggal: ${_selectedDate != null ? _selectedDate!.toLocal().toString().split(' ')[0] : "Belum dipilih"}',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+              ],
             ),
           ),
-          // Tanggal pertemuan
-          if (_selectedDate != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              child: Text(
-                'Tanggal Pertemuan: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blueGrey[800],
-                ),
-              ),
-            ),
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
@@ -131,7 +207,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                   return Center(child: CircularProgressIndicator());
                 }
 
-                final classData = snapshot.data!.data() as Map<String, dynamic>?;
+                final classData =
+                    snapshot.data!.data() as Map<String, dynamic>?;
                 final studentIds =
                     classData?['students'] as List<dynamic>? ?? [];
 
@@ -139,10 +216,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                   return Center(
                     child: Text(
                       'Tidak ada mahasiswa di kelas ini.',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
+                      style:
+                          GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
                     ),
                   );
                 }
@@ -159,7 +234,6 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
 
                     final students = studentSnapshot.data!.docs;
 
-                    // Mengurutkan data berdasarkan NIM secara ascending
                     final sortedStudents = students.toList()
                       ..sort((a, b) {
                         final nimA =
@@ -170,54 +244,56 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                       });
 
                     return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.blueGrey[900],
-                        ),
-                        dataTextStyle: GoogleFonts.poppins(fontSize: 13),
-                        columnSpacing: 20.0,
-                        headingRowColor: MaterialStateColor.resolveWith(
-                          (states) => Colors.blueGrey[100]!,
-                        ),
-                        columns: [
-                          DataColumn(label: Text('NIM')),
-                          DataColumn(label: Text('Nama')),
-                          DataColumn(label: Text('Kelas')),
-                          DataColumn(label: Text('Keterangan')),
-                        ],
-                        rows: sortedStudents.map((student) {
-                          final data =
-                              student.data() as Map<String, dynamic>;
-                          final studentId = student.id;
-
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(data['nim'] ?? 'N/A')),
-                              DataCell(Text(data['name'] ?? 'N/A')),
-                              DataCell(Text(data['kelas'] ?? 'N/A')),
-                              DataCell(
-                                DropdownButton<String>(
-                                  value: _attendanceStatus[studentId] ?? 'Hadir',
-                                  items: ['Hadir', 'Alpha', 'Sakit', 'Izin']
-                                      .map((status) => DropdownMenuItem(
-                                            value: status,
-                                            child: Text(status,
-                                                style: GoogleFonts.poppins()),
-                                          ))
-                                      .toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _attendanceStatus[studentId] = value!;
-                                    });
-                                  },
-                                ),
+                      child: Column(
+                        children: [
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              headingTextStyle: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.blueGrey[900],
                               ),
-                            ],
-                          );
-                        }).toList(),
+                              dataTextStyle: GoogleFonts.poppins(fontSize: 13),
+                              columnSpacing: 20.0,
+                              columns: [
+                                DataColumn(label: Text('NIM')),
+                                DataColumn(label: Text('Nama')),
+                                DataColumn(label: Text('Kelas')),
+                                DataColumn(label: Text('Keterangan')),
+                              ],
+                              rows: sortedStudents.map((student) {
+                                final data = student.data() as Map<String, dynamic>;
+                                final studentId = student.id;
+
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(data['nim'] ?? 'N/A')),
+                                    DataCell(Text(data['name'] ?? 'N/A')),
+                                    DataCell(Text(data['kelas'] ?? 'N/A')),
+                                    DataCell(
+                                      DropdownButton<String>(
+                                        value:
+                                            _attendanceStatus[studentId] ?? 'Hadir',
+                                        items: ['Hadir', 'Alpha', 'Sakit', 'Izin']
+                                            .map((status) => DropdownMenuItem(
+                                                  value: status,
+                                                  child: Text(status),
+                                                ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _attendanceStatus[studentId] = value!;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },

@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart'; // Untuk memformat tanggal
 import 'detail_pertemuan.dart';
 
 class DaftarPertemuanPage extends StatelessWidget {
   final String classId;
 
   const DaftarPertemuanPage({Key? key, required this.classId}) : super(key: key);
+
+  // Fungsi untuk menghitung jumlah mahasiswa hadir
+  int _calculateHadir(Map<String, String> attendanceDetails) {
+    return attendanceDetails.values.where((status) => status == 'Hadir').length;
+  }
+
+  // Fungsi untuk menghitung jumlah mahasiswa tidak hadir
+  int _calculateTidakHadir(Map<String, String> attendanceDetails) {
+    return attendanceDetails.values.where((status) => status != 'Hadir').length;
+  }
+
+  // Fungsi untuk memformat tanggal
+  String _formatDate(String? rawDate) {
+    if (rawDate == null) return "Tanggal tidak tersedia";
+    try {
+      final date = DateTime.parse(rawDate);
+      return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(date); // Format dalam Bahasa Indonesia
+    } catch (e) {
+      return "Tanggal tidak valid";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +52,7 @@ class DaftarPertemuanPage extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           final pertemuanDocs = snapshot.data!.docs;
@@ -50,19 +72,32 @@ class DaftarPertemuanPage extends StatelessWidget {
               final pertemuan = pertemuanDocs[index];
               final data = pertemuan.data() as Map<String, dynamic>;
 
+              // Ambil data attendance
+              final attendanceDetails =
+                  (data['attendanceDetails'] as Map<String, dynamic>?)
+                          ?.map((key, value) => MapEntry(key, value.toString())) ??
+                      {};
+
+              // Hitung hadir dan tidak hadir
+              final hadirCount = _calculateHadir(attendanceDetails);
+              final tidakHadirCount = _calculateTidakHadir(attendanceDetails);
+
+              // Format tanggal
+              final formattedDate = _formatDate(data['tanggal']);
+
               return ListTile(
                 title: Text(
-                  'Pertemuan: ${data['tanggal'] ?? 'N/A'}',
+                  '${data['judul'] ?? 'Pertemuan'}: $formattedDate',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
                 subtitle: Text(
-                  'Hadir: ${data['hadir'] ?? 0}, Absen: ${data['absen'] ?? 0}',
+                  'Hadir: $hadirCount, Tidak Hadir: $tidakHadirCount',
                   style: GoogleFonts.poppins(fontSize: 14),
                 ),
-                trailing: Icon(Icons.arrow_forward_ios),
+                trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
                   Navigator.push(
                     context,

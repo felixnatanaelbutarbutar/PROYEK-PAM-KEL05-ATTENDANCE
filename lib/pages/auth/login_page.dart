@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:proyek_pam_kel5/pages/auth/register_page_mahasiswa.dart';
 import '../dosen/dosen_home.dart';
 import '../mahasiswa/mahasiswa_home_page.dart';
-import 'register_dosen.dart';
+// import 'register_dosen.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -192,18 +192,18 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterDosenPage()),
-                    );
-                  },
-                  child: Text(
-                    'Akses Tersembunyi',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
-                ),
+                // TextButton(
+                //   onPressed: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => RegisterDosenPage()),
+                //     );
+                //   },
+                //   child: Text(
+                //     'Akses Tersembunyi',
+                //     style: TextStyle(color: Colors.redAccent),
+                //   ),
+                // ),
               ],
             ),
           ),

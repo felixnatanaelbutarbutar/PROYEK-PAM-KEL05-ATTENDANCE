@@ -213,59 +213,62 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columnSpacing: 10.0, // Jarak antar kolom lebih rapat
-                        headingTextStyle: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: Colors.blueGrey[900],
-                        ),
-                        dataTextStyle: GoogleFonts.poppins(fontSize: 13),
-                        headingRowColor: MaterialStateColor.resolveWith(
-                          (states) => Colors.blueGrey[100]!,
-                        ),
-                        columns: [
-                          DataColumn(label: Text('NIM')),
-                          DataColumn(label: Text('Nama')),
-                          DataColumn(label: Text('Kelas')),
-                          DataColumn(label: Text('Angkatan')),
-                          DataColumn(label: Text('Aksi')),
-                        ],
-                        rows: sortedStudents.map((student) {
-                          final data =
-                              student.data() as Map<String, dynamic>;
-                          final studentId = student.id;
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical, // Scroll vertikal
+                        child: DataTable(
+                          columnSpacing: 10.0, // Jarak antar kolom lebih rapat
+                          headingTextStyle: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.blueGrey[900],
+                          ),
+                          dataTextStyle: GoogleFonts.poppins(fontSize: 13),
+                          headingRowColor: MaterialStateColor.resolveWith(
+                            (states) => Colors.blueGrey[100]!,
+                          ),
+                          columns: [
+                            DataColumn(label: Text('NIM')),
+                            DataColumn(label: Text('Nama')),
+                            DataColumn(label: Text('Kelas')),
+                            DataColumn(label: Text('Angkatan')),
+                            DataColumn(label: Text('Aksi')),
+                          ],
+                          rows: sortedStudents.map((student) {
+                            final data =
+                                student.data() as Map<String, dynamic>;
+                            final studentId = student.id;
 
-                          return DataRow(
-                            cells: [
-                              DataCell(Text(data['nim'] ?? 'N/A')),
-                              DataCell(
-                                Text(data['name'] ?? 'N/A'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          DetailMahasiswaPage(
-                                        studentId: studentId,
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(data['nim'] ?? 'N/A')),
+                                DataCell(
+                                  Text(data['name'] ?? 'N/A'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            DetailMahasiswaPage(
+                                          studentId: studentId,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              DataCell(Text(data['kelas'] ?? 'N/A')),
-                              DataCell(Text(data['angkatan'] ?? 'N/A')),
-                              DataCell(
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  tooltip: 'Hapus',
-                                  onPressed: () =>
-                                      _removeStudent(studentId),
+                                    );
+                                  },
                                 ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
+                                DataCell(Text(data['kelas'] ?? 'N/A')),
+                                DataCell(Text(data['angkatan'] ?? 'N/A')),
+                                DataCell(
+                                  IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    tooltip: 'Hapus',
+                                    onPressed: () =>
+                                        _removeStudent(studentId),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
                       ),
                     );
                   },
