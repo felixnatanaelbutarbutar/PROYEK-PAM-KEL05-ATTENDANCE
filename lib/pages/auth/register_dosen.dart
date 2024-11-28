@@ -11,6 +11,15 @@ class _RegisterDosenPageState extends State<RegisterDosenPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nidnController = TextEditingController();
+  final TextEditingController _prodiController = TextEditingController();
+  final TextEditingController _jabatanController = TextEditingController();
+  final TextEditingController _golonganController = TextEditingController();
+  final TextEditingController _statusIkatanKerjaController =
+      TextEditingController();
+  final TextEditingController _aktifStartController = TextEditingController();
+  final TextEditingController _aktifEndController = TextEditingController();
+
   bool _isLoading = false;
 
   Future<void> _registerDosen() async {
@@ -31,6 +40,13 @@ class _RegisterDosenPageState extends State<RegisterDosenPage> {
           'email': user.email,
           'role': 'dosen',
           'uid': user.uid,
+          'nidn': _nidnController.text.trim(),
+          'prodi': _prodiController.text.trim(),
+          'jabatan_akademik': _jabatanController.text.trim(),
+          'golongan_kepangkatan': _golonganController.text.trim(),
+          'status_ikatan_kerja': _statusIkatanKerjaController.text.trim(),
+          'aktif_start': _aktifStartController.text.trim(),
+          'aktif_end': _aktifEndController.text.trim(),
         });
 
         // Sukses
@@ -70,6 +86,13 @@ class _RegisterDosenPageState extends State<RegisterDosenPage> {
     _emailController.clear();
     _passwordController.clear();
     _nameController.clear();
+    _nidnController.clear();
+    _prodiController.clear();
+    _jabatanController.clear();
+    _golonganController.clear();
+    _statusIkatanKerjaController.clear();
+    _aktifStartController.clear();
+    _aktifEndController.clear();
   }
 
   @override
@@ -94,6 +117,83 @@ class _RegisterDosenPageState extends State<RegisterDosenPage> {
                   ),
                 ),
               ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _nidnController,
+                decoration: InputDecoration(
+                  labelText: 'NIDN',
+                  prefixIcon: Icon(Icons.badge),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _prodiController,
+                decoration: InputDecoration(
+                  labelText: 'Prodi',
+                  prefixIcon: Icon(Icons.school),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _jabatanController,
+                decoration: InputDecoration(
+                  labelText: 'Jabatan Akademik',
+                  prefixIcon: Icon(Icons.work),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _golonganController,
+                decoration: InputDecoration(
+                  labelText: 'Golongan Kepangkatan',
+                  prefixIcon: Icon(Icons.star),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _statusIkatanKerjaController,
+                decoration: InputDecoration(
+                  labelText: 'Status Ikatan Kerja',
+                  prefixIcon: Icon(Icons.assignment_ind),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _aktifStartController,
+                decoration: InputDecoration(
+                  labelText: 'Aktif Start',
+                  prefixIcon: Icon(Icons.date_range),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              TextField(
+                controller: _aktifEndController,
+                decoration: InputDecoration(
+                  labelText: 'Aktif End',
+                  prefixIcon: Icon(Icons.date_range),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                ),
+              ),
               SizedBox(height: 20),
               TextField(
                 controller: _emailController,
@@ -105,7 +205,7 @@ class _RegisterDosenPageState extends State<RegisterDosenPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -117,7 +217,7 @@ class _RegisterDosenPageState extends State<RegisterDosenPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 20),
               _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : ElevatedButton(

@@ -129,12 +129,48 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
           .doc(widget.classId)
           .collection('pertemuan');
 
-      // Simpan data pertemuan
+      // Ambil daftar mahasiswa dari Firestore berdasarkan kelas
+      final classSnapshot = await FirebaseFirestore.instance
+          .collection('classes')
+          .doc(widget.classId)
+          .get();
+
+      final classData = classSnapshot.data() as Map<String, dynamic>?;
+      final studentIds = classData?['students'] as List<dynamic>? ?? [];
+
+      // Buat daftar mahasiswa berdasarkan NIM
+      List<Map<String, dynamic>> studentsList = [];
+      Map<String, String> attendanceData = {};
+
+      for (var studentId in studentIds) {
+        final studentSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(studentId)
+            .get();
+
+        if (studentSnapshot.exists) {
+          final studentData = studentSnapshot.data() as Map<String, dynamic>;
+
+          // Ambil NIM mahasiswa
+          final nim = studentData['nim'] ?? 'Unknown';
+
+          // Tambahkan ke daftar mahasiswa
+          studentsList.add({
+            'nim': nim, // Gunakan NIM
+            'name': studentData['name'] ?? 'Unknown',
+          });
+
+          // Tambahkan ke data attendance dengan default 'Tidak Hadir'
+          attendanceData[nim] = _attendanceStatus[studentId] ?? 'Hadir';
+        }
+      }
+
+      // Simpan data pertemuan ke Firestore
       await pertemuanRef.add({
         'judul': _meetingTitle,
-        'tanggal': _selectedDate!.toIso8601String(),
-        'attendanceDetails':
-            _attendanceStatus, // Simpan data kehadiran per mahasiswa
+        'tanggal': Timestamp.fromDate(_selectedDate!),
+        'students': studentsList, // Daftar mahasiswa berdasarkan NIM
+        'attendance': attendanceData, // Kehadiran berdasarkan NIM
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -263,7 +299,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                                 DataColumn(label: Text('Keterangan')),
                               ],
                               rows: sortedStudents.map((student) {
-                                final data = student.data() as Map<String, dynamic>;
+                                final data =
+                                    student.data() as Map<String, dynamic>;
                                 final studentId = student.id;
 
                                 return DataRow(
@@ -273,9 +310,14 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                                     DataCell(Text(data['kelas'] ?? 'N/A')),
                                     DataCell(
                                       DropdownButton<String>(
-                                        value:
-                                            _attendanceStatus[studentId] ?? 'Hadir',
-                                        items: ['Hadir', 'Alpha', 'Sakit', 'Izin']
+                                        value: _attendanceStatus[studentId] ??
+                                            'Hadir',
+                                        items: [
+                                          'Hadir',
+                                          'Alpha',
+                                          'Sakit',
+                                          'Izin'
+                                        ]
                                             .map((status) => DropdownMenuItem(
                                                   value: status,
                                                   child: Text(status),
@@ -283,7 +325,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                                             .toList(),
                                         onChanged: (value) {
                                           setState(() {
-                                            _attendanceStatus[studentId] = value!;
+                                            _attendanceStatus[studentId] =
+                                                value!;
                                           });
                                         },
                                       ),

@@ -22,7 +22,8 @@ class DosenHomePage extends StatelessWidget {
     }
   }
 
-  Future<void> _editClass(BuildContext context, String classId, String currentName) async {
+  Future<void> _editClass(
+      BuildContext context, String classId, String currentName) async {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => _EditClassDialog(currentName: currentName),
@@ -36,7 +37,8 @@ class DosenHomePage extends StatelessWidget {
     }
   }
 
-  Future<void> _deleteClass(BuildContext context, String classId, String className) async {
+  Future<void> _deleteClass(
+      BuildContext context, String classId, String className) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -59,7 +61,10 @@ class DosenHomePage extends StatelessWidget {
     );
 
     if (confirm ?? false) {
-      await FirebaseFirestore.instance.collection('classes').doc(classId).delete();
+      await FirebaseFirestore.instance
+          .collection('classes')
+          .doc(classId)
+          .delete();
     }
   }
 
@@ -87,6 +92,167 @@ class DosenHomePage extends StatelessWidget {
 
     if (confirm ?? false) {
       _logout(context);
+    }
+  }
+
+  Future<void> _showProfile(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Pengguna tidak ditemukan.')),
+      );
+      return;
+    }
+
+    try {
+      // Ambil data dosen berdasarkan UID dari koleksi 'users'
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null) {
+          // Data profil dosen
+          final name = data['name'] ?? 'Tidak diketahui';
+          final email = data['email'] ?? 'Tidak diketahui';
+          final nidn = data['nidn'] ?? 'Tidak tersedia';
+          final prodi = data['prodi'] ?? 'Tidak tersedia';
+          final jabatanAkademik = data['jabatan_akademik'] ?? 'Tidak tersedia';
+          final golonganKepangkatan =
+              data['golongan_kepangkatan'] ?? 'Tidak tersedia';
+          final statusIkatanKerja =
+              data['status_ikatan_kerja'] ?? 'Tidak tersedia';
+          final aktifStart = data['aktif_start'] ?? 'Tidak tersedia';
+          final aktifEnd = data['aktif_end'] ?? 'Tidak tersedia';
+
+          // Tampilkan dialog dengan data profil
+          showDialog(
+            context: context,
+            builder: (context) {
+              // Fungsi untuk membuat baris tabel
+              TableRow _buildTableRow(String label, String value) {
+                return TableRow(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        '$label:',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        value,
+                        style: GoogleFonts.poppins(),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
+                title: Row(
+                  children: [
+                    Icon(Icons.person, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('Profil Dosen',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                content: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      ClipOval(
+                        child: Container(
+                          color: Colors.blue.shade100,
+                          padding: EdgeInsets.all(16),
+                          child: Icon(
+                            Icons.person_outline,
+                            size: 60,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Table(
+                        columnWidths: const {
+                          0: IntrinsicColumnWidth(),
+                          1: FlexColumnWidth(),
+                        },
+                        children: [
+                          _buildTableRow('Nama', name),
+                          _buildTableRow('Email', email),
+                          _buildTableRow('NIDN', nidn),
+                          _buildTableRow('Prodi', prodi),
+                          _buildTableRow('Jabatan', jabatanAkademik),
+                          _buildTableRow('Golongan', golonganKepangkatan),
+                          _buildTableRow('Ikatan Kerja', statusIkatanKerja),
+                          _buildTableRow('Aktif Start', aktifStart),
+                          _buildTableRow('Aktif End', aktifEnd),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                actions: [
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(Icons.close),
+                    label: Text('Tutup', style: GoogleFonts.poppins()),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+
+          TableRow _buildTableRow(String label, String value) {
+            return TableRow(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    '$label:',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    value,
+                    style: GoogleFonts.poppins(),
+                  ),
+                ),
+              ],
+            );
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data dosen tidak ditemukan.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Gagal memuat profil dosen. Silakan coba lagi.')),
+      );
     }
   }
 
@@ -137,6 +303,11 @@ class DosenHomePage extends StatelessWidget {
                 centerTitle: true,
                 actions: [
                   IconButton(
+                    icon: Icon(Icons.person, color: Colors.white),
+                    tooltip: 'Profil',
+                    onPressed: () => _showProfile(context),
+                  ),
+                  IconButton(
                     icon: Icon(Icons.logout, color: Colors.white),
                     tooltip: 'Logout',
                     onPressed: () => _confirmLogout(context),
@@ -161,7 +332,8 @@ class DosenHomePage extends StatelessWidget {
                     return Center(
                       child: Text(
                         'Belum ada mata kuliah.',
-                        style: GoogleFonts.poppins(fontSize: 18, color: Colors.white70),
+                        style: GoogleFonts.poppins(
+                            fontSize: 18, color: Colors.white70),
                       ),
                     );
                   }
@@ -217,21 +389,27 @@ class DosenHomePage extends StatelessWidget {
                                 ),
                                 Text(
                                   'Jumlah Mahasiswa: ${classData['students'].length}',
-                                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 12, color: Colors.grey),
                                   textAlign: TextAlign.center,
                                 ),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.edit, color: Colors.blue),
+                                      icon:
+                                          Icon(Icons.edit, color: Colors.blue),
                                       tooltip: 'Edit Nama',
-                                      onPressed: () => _editClass(context, classData.id, classData['className']),
+                                      onPressed: () => _editClass(context,
+                                          classData.id, classData['className']),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.delete, color: Colors.red),
+                                      icon:
+                                          Icon(Icons.delete, color: Colors.red),
                                       tooltip: 'Hapus Kelas',
-                                      onPressed: () => _deleteClass(context, classData.id, classData['className']),
+                                      onPressed: () => _deleteClass(context,
+                                          classData.id, classData['className']),
                                     ),
                                   ],
                                 ),
@@ -317,7 +495,8 @@ class _AddClassDialogState extends State<_AddClassDialog> {
 class _EditClassDialog extends StatefulWidget {
   final String currentName;
 
-  const _EditClassDialog({Key? key, required this.currentName}) : super(key: key);
+  const _EditClassDialog({Key? key, required this.currentName})
+      : super(key: key);
 
   @override
   _EditClassDialogState createState() => _EditClassDialogState();

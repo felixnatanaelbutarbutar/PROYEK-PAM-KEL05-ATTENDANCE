@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class DetailPertemuanPage extends StatelessWidget {
   final String pertemuanId;
@@ -15,7 +16,11 @@ class DetailPertemuanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail Pertemuan'),
+        title: const Text(
+          'Detail Pertemuan',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blueGrey[900],
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -25,33 +30,143 @@ class DetailPertemuanPage extends StatelessWidget {
             .doc(pertemuanId)
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
           }
 
-          final pertemuanData = snapshot.data!.data() as Map<String, dynamic>?;
-          final attendance = pertemuanData?['attendance'] as Map<String, dynamic>? ?? {};
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Data pertemuan tidak ditemukan.'));
+          }
 
-          return ListView(
-            children: [
-              ListTile(
-                title: Text('Judul Pertemuan: ${pertemuanData?['title'] ?? ''}'),
-                subtitle: Text('Tanggal: ${pertemuanData?['date'] ?? ''}'),
-              ),
-              Divider(),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: attendance.length,
-                itemBuilder: (context, index) {
-                  final studentId = attendance.keys.elementAt(index);
-                  final status = attendance[studentId];
-                  return ListTile(
-                    title: Text('Mahasiswa ID: $studentId'),
-                    subtitle: Text('Status Kehadiran: $status'),
-                  );
-                },
-              ),
-            ],
+          final pertemuanData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+          final attendance = pertemuanData['attendance'] as Map<String, dynamic>? ?? {};
+          final students = pertemuanData['students'] as List<dynamic>? ?? [];
+
+          // Membuat daftar mahasiswa berdasarkan students dan attendance
+          List<Map<String, dynamic>> studentList = students.map((student) {
+            final studentNim = student['nim'] ?? 'N/A';
+            final studentName = student['name'] ?? 'Unknown';
+            final status = attendance[studentNim] ?? 'Tidak Hadir'; // Ambil status berdasarkan nim
+            return {
+              'nim': studentNim,
+              'name': studentName,
+              'status': status,
+            };
+          }).toList();
+
+          // Mengurutkan daftar mahasiswa berdasarkan NIM
+          studentList.sort((a, b) => a['nim'].compareTo(b['nim']));
+
+          // Format tanggal
+          String formattedDate = '-';
+          if (pertemuanData['tanggal'] != null) {
+            final timestamp = pertemuanData['tanggal'] as Timestamp;
+            formattedDate = DateFormat('dd MMMM yyyy').format(timestamp.toDate());
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: Judul dan Tanggal Pertemuan
+                Card(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Judul Pertemuan',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          pertemuanData['judul'] ?? '-',
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Tanggal',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          formattedDate,
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Tabel Daftar Kehadiran
+                const Text(
+                  'Daftar Kehadiran',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Card(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      dataTextStyle: const TextStyle(fontSize: 14),
+                      headingRowColor: MaterialStateColor.resolveWith(
+                        (states) => Colors.blueGrey[900]!,
+                      ),
+                      columns: const [
+                        DataColumn(label: Text('NIM')),
+                        DataColumn(label: Text('Nama')),
+                        DataColumn(label: Text('Status Kehadiran')),
+                      ],
+                      rows: studentList.map((student) {
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(student['nim'])),
+                            DataCell(Text(student['name'])),
+                            DataCell(
+                              Text(
+                                student['status'],
+                                style: TextStyle(
+                                  color: student['status'] == 'Hadir'
+                                      ? Colors.green
+                                      : student['status'] == 'Sakit'
+                                          ? Colors.orange
+                                          : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       ),

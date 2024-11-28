@@ -19,8 +19,15 @@ class _RegisterMahasiswaPageState extends State<RegisterMahasiswaPage> {
 
   bool _isLoading = false;
 
-  final List<String> _kelasOptions = ['31TI1', '31TI2', '31TI3'];
-  final List<String> _asramaOptions = ['Pniel', 'Jati'];
+  final List<String> _kelasOptions = ['32TI1', '32TI2', '42TRPL1', '42TRPL2'];
+  final List<String> _asramaOptions = [
+    'Pniel',
+    'Jati',
+    'Mamre',
+    'Nazareth',
+    'Silo',
+    'Kapernaum'
+  ];
 
   Future<void> _registerMahasiswa() async {
     if (_selectedKelas == null || _selectedAsrama == null) {
