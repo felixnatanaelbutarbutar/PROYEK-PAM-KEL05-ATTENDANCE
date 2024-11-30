@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'add_student_page.dart';
 import 'daftar_pertemuan.dart';
-import 'create_pertemuan_page.dart';  // Pastikan Anda memiliki halaman ini
+import 'create_pertemuan_page.dart';
 import 'detail_mahasiswa.dart';
 
 class ManageStudentPage extends StatefulWidget {
@@ -36,8 +36,9 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
             child: Text('Batal', style: GoogleFonts.poppins()),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Hapus', style: GoogleFonts.poppins()),
+            child: Text('Hapus', style: GoogleFonts.poppins(color: Colors.white)),
           ),
         ],
       ),
@@ -89,12 +90,12 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blueAccent, Colors.indigo],
+              colors: [Colors.blue, Colors.indigo],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -112,12 +113,12 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_today, color: Colors.white),
             tooltip: 'Daftar Pertemuan',
             onPressed: _openDaftarPertemuan,
           ),
           IconButton(
-            icon: Icon(Icons.person_add),
+            icon: Icon(Icons.person_add, color: Colors.white),
             tooltip: 'Tambah Mahasiswa',
             onPressed: _addStudent,
           ),
@@ -126,10 +127,9 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header untuk nama kelas
           Container(
             width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [Colors.blueAccent, Colors.indigo],
@@ -146,22 +146,21 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               ),
             ),
           ),
-          // Tombol Buat Pertemuan
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: ElevatedButton.icon(
               onPressed: _createPertemuan,
-              icon: Icon(Icons.calendar_today),
+              icon: Icon(Icons.add, color: Colors.white),
               label: Text(
                 'Buat Pertemuan',
-                style: GoogleFonts.poppins(fontSize: 16),
+                style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
               ),
               style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
               ),
             ),
           ),
-          // Daftar Mahasiswa
           Expanded(
             child: StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
@@ -201,7 +200,6 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
 
                     final students = studentSnapshot.data!.docs;
 
-                    // Mengurutkan mahasiswa berdasarkan NIM
                     final sortedStudents = students.toList()
                       ..sort((a, b) {
                         final nimA =
@@ -213,62 +211,55 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical, // Scroll vertikal
-                        child: DataTable(
-                          columnSpacing: 10.0, // Jarak antar kolom lebih rapat
-                          headingTextStyle: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.blueGrey[900],
-                          ),
-                          dataTextStyle: GoogleFonts.poppins(fontSize: 13),
-                          headingRowColor: MaterialStateColor.resolveWith(
-                            (states) => Colors.blueGrey[100]!,
-                          ),
-                          columns: [
-                            DataColumn(label: Text('NIM')),
-                            DataColumn(label: Text('Nama')),
-                            DataColumn(label: Text('Kelas')),
-                            DataColumn(label: Text('Angkatan')),
-                            DataColumn(label: Text('Aksi')),
-                          ],
-                          rows: sortedStudents.map((student) {
-                            final data =
-                                student.data() as Map<String, dynamic>;
-                            final studentId = student.id;
-
-                            return DataRow(
-                              cells: [
-                                DataCell(Text(data['nim'] ?? 'N/A')),
-                                DataCell(
-                                  Text(data['name'] ?? 'N/A'),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DetailMahasiswaPage(
-                                          studentId: studentId,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                DataCell(Text(data['kelas'] ?? 'N/A')),
-                                DataCell(Text(data['angkatan'] ?? 'N/A')),
-                                DataCell(
-                                  IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                    tooltip: 'Hapus',
-                                    onPressed: () =>
-                                        _removeStudent(studentId),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                      child: DataTable(
+                        columnSpacing: 15.0,
+                        headingTextStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.indigo,
                         ),
+                        dataTextStyle: GoogleFonts.poppins(fontSize: 13),
+                        columns: [
+                          DataColumn(label: Text('NIM')),
+                          DataColumn(label: Text('Nama')),
+                          DataColumn(label: Text('Kelas')),
+                          DataColumn(label: Text('Angkatan')),
+                          DataColumn(label: Text('Aksi')),
+                        ],
+                        rows: sortedStudents.map((student) {
+                          final data =
+                              student.data() as Map<String, dynamic>;
+                          final studentId = student.id;
+
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(data['nim'] ?? 'N/A')),
+                              DataCell(
+                                Text(data['name'] ?? 'N/A'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          DetailMahasiswaPage(
+                                        studentId: studentId,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              DataCell(Text(data['kelas'] ?? 'N/A')),
+                              DataCell(Text(data['angkatan'] ?? 'N/A')),
+                              DataCell(
+                                IconButton(
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  tooltip: 'Hapus',
+                                  onPressed: () => _removeStudent(studentId),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
                       ),
                     );
                   },

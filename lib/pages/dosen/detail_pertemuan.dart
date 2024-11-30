@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DetailPertemuanPage extends StatelessWidget {
   final String pertemuanId;
@@ -16,11 +17,25 @@ class DetailPertemuanPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Detail Pertemuan',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue, Colors.indigo],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
         ),
-        backgroundColor: Colors.blueGrey[900],
+        elevation: 0,
+        title: Text(
+          'Detail Pertemuan',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -80,9 +95,9 @@ class DetailPertemuanPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Judul Pertemuan',
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -93,9 +108,9 @@ class DetailPertemuanPage extends StatelessWidget {
                           style: const TextStyle(fontSize: 14, color: Colors.black87),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
+                        Text(
                           'Tanggal',
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -112,9 +127,9 @@ class DetailPertemuanPage extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 // Tabel Daftar Kehadiran
-                const Text(
+                Text(
                   'Daftar Kehadiran',
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),

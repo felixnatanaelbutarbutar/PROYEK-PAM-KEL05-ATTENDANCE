@@ -58,8 +58,7 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
               // Pilih tanggal pertemuan
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey[800],
-                  // colors: [Colors.blueAccent, Colors.indigo],
+                  backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                 ),
                 onPressed: () async {
                   final DateTime? picked = await showDatePicker(
@@ -78,7 +77,8 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                   _selectedDate == null
                       ? 'Pilih Tanggal'
                       : 'Tanggal: ${_selectedDate!.toLocal().toString().split(' ')[0]}',
-                  style: GoogleFonts.poppins(color: Colors.white),
+                  style: GoogleFonts.poppins(
+                      color: const Color.fromARGB(162, 0, 0, 0)),
                 ),
               ),
             ],
@@ -188,8 +188,16 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 4, 171,
-            255), // Warna disesuaikan dengan halaman Manage Student
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue, Colors.indigo],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
         title: Text(
           'Buat Pertemuan',
           style: GoogleFonts.poppins(
@@ -198,9 +206,10 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
             color: Colors.white,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.save),
+            icon: Icon(Icons.save, color: Colors.white),
             onPressed: _saveAttendance,
           ),
         ],
@@ -209,27 +218,52 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Kelas: ${widget.className}',
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: Offset(0, 3), // changes position of shadow
                   ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Judul Pertemuan: ${_meetingTitle ?? "Belum diatur"}',
-                  style: GoogleFonts.poppins(fontSize: 14),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Tanggal: ${_selectedDate != null ? _selectedDate!.toLocal().toString().split(' ')[0] : "Belum dipilih"}',
-                  style: GoogleFonts.poppins(fontSize: 14),
-                ),
-              ],
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Mata Kuliah: ${widget.className}',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: const Color.fromARGB(
+                          196, 0, 0, 0), // Use a color that matches your theme
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Judul Pertemuan: ${_meetingTitle ?? "Belum diatur"}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: const Color.fromARGB(
+                          179, 0, 0, 0), // Softer color for less emphasis
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tanggal: ${_selectedDate != null ? _selectedDate!.toLocal().toString().split(' ')[0] : "Belum dipilih"}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: const Color.fromARGB(
+                          179, 0, 0, 0), // Softer color for less emphasis
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -284,56 +318,74 @@ class _CreatePertemuanPageState extends State<CreatePertemuanPage> {
                         children: [
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              headingTextStyle: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.blueGrey[900],
-                              ),
-                              dataTextStyle: GoogleFonts.poppins(fontSize: 13),
-                              columnSpacing: 20.0,
-                              columns: [
-                                DataColumn(label: Text('NIM')),
-                                DataColumn(label: Text('Nama')),
-                                DataColumn(label: Text('Kelas')),
-                                DataColumn(label: Text('Keterangan')),
-                              ],
-                              rows: sortedStudents.map((student) {
-                                final data =
-                                    student.data() as Map<String, dynamic>;
-                                final studentId = student.id;
+                            child: SingleChildScrollView(
+                              scrollDirection:
+                                  Axis.vertical, // Vertical scrolling
+                              child: DataTable(
+                                headingTextStyle: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: Colors.blueGrey[900],
+                                ),
+                                dataTextStyle:
+                                    GoogleFonts.poppins(fontSize: 13),
+                                columnSpacing: 19.0,
+                                columns: [
+                                  DataColumn(
+                                      label: Container( width: 50, child: Text('NIM'))),
+                                  DataColumn(
+                                      label: Container(
+                                          width: 170,child: Text('Nama'))), // Adjust width as needed
+                                  DataColumn(label: Text('Keterangan')),
+                                ],
+                                rows: sortedStudents.map((student) {
+                                  final data =
+                                      student.data() as Map<String, dynamic>;
+                                  final studentId = student.id;
 
-                                return DataRow(
-                                  cells: [
-                                    DataCell(Text(data['nim'] ?? 'N/A')),
-                                    DataCell(Text(data['name'] ?? 'N/A')),
-                                    DataCell(Text(data['kelas'] ?? 'N/A')),
-                                    DataCell(
-                                      DropdownButton<String>(
-                                        value: _attendanceStatus[studentId] ??
-                                            'Hadir',
-                                        items: [
-                                          'Hadir',
-                                          'Alpha',
-                                          'Sakit',
-                                          'Izin'
-                                        ]
-                                            .map((status) => DropdownMenuItem(
-                                                  value: status,
-                                                  child: Text(status),
-                                                ))
-                                            .toList(),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _attendanceStatus[studentId] =
-                                                value!;
-                                          });
-                                        },
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(data['nim'] ?? 'N/A')),
+                                      DataCell(
+                                        Container(
+                                          width:
+                                              150, // Fixed width to allow wrapping
+                                          child: Text(
+                                            data['name'] ?? 'N/A',
+                                            overflow: TextOverflow
+                                                .visible, // Allow text to wrap
+                                            maxLines:
+                                                2, // Maximum number of lines
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              }).toList(),
+                                      DataCell(
+                                        DropdownButton<String>(
+                                          value: _attendanceStatus[studentId] ??
+                                              'Hadir',
+                                          items: [
+                                            'Hadir',
+                                            'Alpha',
+                                            'Sakit',
+                                            'Izin'
+                                          ]
+                                              .map((status) => DropdownMenuItem(
+                                                    value: status,
+                                                    child: Text(status),
+                                                  ))
+                                              .toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _attendanceStatus[studentId] =
+                                                  value!;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
                         ],

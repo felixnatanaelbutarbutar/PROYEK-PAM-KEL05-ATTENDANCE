@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proyek_pam_kel5/pages/dosen/dosen_profile_page.dart';
 import 'manage_student_page.dart';
 
 class DosenHomePage extends StatelessWidget {
@@ -303,9 +304,18 @@ class DosenHomePage extends StatelessWidget {
                 centerTitle: true,
                 actions: [
                   IconButton(
-                    icon: Icon(Icons.person, color: Colors.white),
+                    icon: const Icon(Icons.person, color: Colors.white),
                     tooltip: 'Profil',
-                    onPressed: () => _showProfile(context),
+                    onPressed: () {
+                      final dosenId = FirebaseAuth.instance.currentUser!.uid;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              DosenProfilePage(dosenId: dosenId),
+                        ),
+                      );
+                    },
                   ),
                   IconButton(
                     icon: Icon(Icons.logout, color: Colors.white),
