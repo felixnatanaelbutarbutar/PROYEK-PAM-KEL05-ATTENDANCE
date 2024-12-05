@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proyek_pam_kel5/pages/dosen/create_pengumuman.dart';
+import 'package:proyek_pam_kel5/pages/dosen/list_pengumuman.dart';
+// import 'package:proyek_pam_kel5/pages/dosen/daftar_pengumuman.dart';
 import 'add_student_page.dart';
 import 'daftar_pertemuan.dart';
 import 'create_pertemuan_page.dart';
@@ -38,7 +41,8 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Hapus', style: GoogleFonts.poppins(color: Colors.white)),
+            child:
+                Text('Hapus', style: GoogleFonts.poppins(color: Colors.white)),
           ),
         ],
       ),
@@ -87,6 +91,28 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
     );
   }
 
+  void _createPengumuman() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreatePengumumanPage(
+          classId: widget.classId,
+          // className: widget.className,
+        ),
+      ),
+    );
+  }
+
+  void _openDaftarPengumuman() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ListPengumumanPage(classId: widget.classId,),
+    ),
+  );
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,33 +158,102 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
             padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blueAccent, Colors.indigo],
+                colors: [const Color.fromARGB(255, 66, 121, 215), Colors.indigo],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
-            child: Text(
-              '${widget.className}',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+            child: Center(
+              child: Text(
+                widget.className,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.oswald(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 2.0,
+                      color: const Color.fromARGB(142, 255, 255, 255),
+                      offset: Offset(1.0, 1.0),
+                    ),
+                  ],
+                  foreground: Paint()
+                    ..shader = LinearGradient(
+                      colors: <Color>[
+                        const Color.fromARGB(255, 3, 106, 191),
+                        const Color.fromARGB(255, 20, 21, 22),
+                      ],
+                    ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
+                ),
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(10.0),
-            child: ElevatedButton.icon(
-              onPressed: _createPertemuan,
-              icon: Icon(Icons.add, color: Colors.white),
-              label: Text(
-                'Buat Pertemuan',
-                style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              ),
+            child: Column(
+              children: [
+                // Baris pertama
+                Row(
+                  children: [
+                    // Tombol "Buat Pengumuman"
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _createPengumuman,
+                        icon: Icon(Icons.notifications, color: Colors.white),
+                        label: Text(
+                          'Buat Pengumuman',
+                          style: GoogleFonts.poppins(
+                              fontSize: 13.5, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10), // Spasi antar tombol
+                    // Tombol "Lihat Pengumuman"
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _openDaftarPengumuman,
+                        icon: Icon(Icons.notifications_outlined,
+                            color: Colors.white),
+                        label: Text(
+                          'Lihat Pengumuman',
+                          style: GoogleFonts.poppins(
+                              fontSize: 13.5, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10), // Spasi antar baris
+                // Baris kedua
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _createPertemuan,
+                        icon: Icon(Icons.add, color: Colors.white),
+                        label: Text(
+                          'Buat Pertemuan',
+                          style: GoogleFonts.poppins(
+                              fontSize: 16, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -172,7 +267,8 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                   return Center(child: CircularProgressIndicator());
                 }
 
-                final classData = snapshot.data!.data() as Map<String, dynamic>?;
+                final classData =
+                    snapshot.data!.data() as Map<String, dynamic>?;
                 final studentIds =
                     classData?['students'] as List<dynamic>? ?? [];
 
@@ -227,8 +323,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                           DataColumn(label: Text('Aksi')),
                         ],
                         rows: sortedStudents.map((student) {
-                          final data =
-                              student.data() as Map<String, dynamic>;
+                          final data = student.data() as Map<String, dynamic>;
                           final studentId = student.id;
 
                           return DataRow(
@@ -240,8 +335,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          DetailMahasiswaPage(
+                                      builder: (context) => DetailMahasiswaPage(
                                         studentId: studentId,
                                       ),
                                     ),

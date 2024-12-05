@@ -7,10 +7,12 @@ import 'detail_pertemuan.dart';
 class DaftarPertemuanPage extends StatelessWidget {
   final String classId;
 
-  const DaftarPertemuanPage({Key? key, required this.classId}) : super(key: key);
+  const DaftarPertemuanPage({Key? key, required this.classId})
+      : super(key: key);
 
   // Fungsi untuk menghitung total kehadiran
-  int _calculateHadir(Map<String, String> attendanceDetails, int totalStudents) {
+  int _calculateHadir(
+      Map<String, String> attendanceDetails, int totalStudents) {
     final tidakHadirCount =
         attendanceDetails.values.where((status) => status != 'Hadir').length;
     return totalStudents - tidakHadirCount;
@@ -38,7 +40,8 @@ class DaftarPertemuanPage extends StatelessWidget {
   }
 
   // Fungsi untuk menghapus pertemuan
-  Future<void> _deletePertemuan(BuildContext context, String pertemuanId) async {
+  Future<void> _deletePertemuan(
+      BuildContext context, String pertemuanId) async {
     try {
       await FirebaseFirestore.instance
           .collection('classes')
@@ -68,6 +71,7 @@ class DaftarPertemuanPage extends StatelessWidget {
       );
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +82,7 @@ class DaftarPertemuanPage extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
@@ -126,16 +131,14 @@ class DaftarPertemuanPage extends StatelessWidget {
                   final pertemuan = pertemuanDocs[index];
                   final data = pertemuan.data() as Map<String, dynamic>;
 
-                  final attendanceDetails = (data['attendance'] as Map<String, dynamic>? ??
-                      {}).map(
+                  final attendanceDetails =
+                      (data['attendance'] as Map<String, dynamic>? ?? {}).map(
                     (key, value) => MapEntry(key, value.toString()),
                   );
 
                   final rawDate = data['tanggal'];
-                  final hadirCount =
-                      _calculateHadir(attendanceDetails, totalStudents);
-                  final tidakHadirCount =
-                      _calculateTidakHadir(attendanceDetails);
+                  final hadirCount = _calculateHadir(attendanceDetails, totalStudents);
+                  final tidakHadirCount = _calculateTidakHadir(attendanceDetails);
                   final formattedDate = _formatDate(rawDate);
 
                   return ListTile(

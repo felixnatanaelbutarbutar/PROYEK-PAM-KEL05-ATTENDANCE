@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:proyek_pam_kel5/pages/dosen/dosen_profile_page.dart';
-import 'manage_student_page.dart';
+import 'manage_class_page.dart';
 
 class DosenHomePage extends StatelessWidget {
   final String dosenId = FirebaseAuth.instance.currentUser!.uid;
