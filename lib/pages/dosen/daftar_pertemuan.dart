@@ -23,19 +23,47 @@ class DaftarPertemuanPage extends StatelessWidget {
     return attendanceDetails.values.where((status) => status != 'Hadir').length;
   }
 
-  // Fungsi untuk memformat tanggal dengan penanganan Firestore Timestamp
+  // Fungsi untuk memformat tanggal
+
+  // Fungsi untuk memformat tanggal
   String _formatDate(dynamic rawDate) {
+    if (rawDate is Timestamp) {
+      final date = rawDate.toDate();
+      return DateFormat('dd MMMM yyyy').format(date);
+    }
+    return "Tanggal tidak valid";
+  }
+
+  // Fungsi untuk menghapus pertemuan
+  Future<void> _deletePertemuan(
+      BuildContext context, String pertemuanId) async {
     try {
-      if (rawDate is Timestamp) {
-        final date = rawDate.toDate(); // Konversi dari Timestamp ke DateTime
-        return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(date);
-      } else if (rawDate is DateTime) {
-        return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(rawDate);
-      } else {
-        return "Tanggal tidak valid";
-      }
+      await FirebaseFirestore.instance
+          .collection('classes')
+          .doc(classId)
+          .collection('pertemuan')
+          .doc(pertemuanId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Pertemuan berhasil dihapus.',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
-      return "Tanggal tidak valid";
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Gagal menghapus pertemuan: $e',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -48,6 +76,7 @@ class DaftarPertemuanPage extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
@@ -58,6 +87,8 @@ class DaftarPertemuanPage extends StatelessWidget {
             .collection('classes')
             .doc(classId)
             .collection('pertemuan')
+            .orderBy('tanggal',
+                descending: true) // Mengurutkan berdasarkan tanggal
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
@@ -75,80 +106,91 @@ class DaftarPertemuanPage extends StatelessWidget {
             );
           }
 
-          return StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('classes')
-                .doc(classId)
-                .snapshots(),
-            builder: (context, classSnapshot) {
-              if (!classSnapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
+          return ListView.builder(
+            itemCount: pertemuanDocs.length,
+            itemBuilder: (context, index) {
+              final pertemuan = pertemuanDocs[index];
+              final data = pertemuan.data() as Map<String, dynamic>;
 
-              final classData =
-                  classSnapshot.data!.data() as Map<String, dynamic>;
-              final totalStudents =
-                  (classData['students'] as List<dynamic>).length;
+              final attendanceDetails =
+                  (data['attendance'] as Map<String, dynamic>? ?? {}).map(
+                (key, value) => MapEntry(key, value.toString()),
+              );
+              // Ambil dan format tanggal
+              final rawDate = data['tanggal'];
+              final formattedDate = _formatDate(rawDate);
+              final hadirCount = _calculateHadir(attendanceDetails,
+                  (data['students'] as List<dynamic>? ?? []).length);
+              final tidakHadirCount = _calculateTidakHadir(attendanceDetails);
 
-              return ListView.builder(
-                itemCount: pertemuanDocs.length,
-                itemBuilder: (context, index) {
-                  final pertemuan = pertemuanDocs[index];
-                  final data = pertemuan.data() as Map<String, dynamic>;
-
-                  // Konversi attendanceDetails menjadi Map<String, String>
-                  final attendanceDetails = (data['attendanceDetails']
-                          as Map<String, dynamic>? ??
-                      {}).map(
-                    (key, value) => MapEntry(key, value.toString()),
-                  );
-
-                  // Ambil tanggal dari attendanceDetails
-                  final rawDate = attendanceDetails['tanggal'];
-
-                  final hadirCount =
-                      _calculateHadir(attendanceDetails, totalStudents);
-                  final tidakHadirCount =
-                      _calculateTidakHadir(attendanceDetails);
-
-                  final formattedDate = _formatDate(rawDate);
-
-                  return ListTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${data['judul'] ?? 'Pertemuan'}',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          formattedDate,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
+              return ListTile(
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${data['judul'] ?? 'Pertemuan'}',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                    subtitle: Text(
-                      'Hadir: $hadirCount, Tidak Hadir: $tidakHadirCount',
-                      style: GoogleFonts.poppins(fontSize: 14),
+                    Text(
+                      formattedDate,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailPertemuanPage(
-                            pertemuanId: pertemuan.id,
-                            classId: classId,
+                  ],
+                ),
+                subtitle: Text(
+                  'Hadir: $hadirCount, Tidak Hadir: $tidakHadirCount',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        final confirmDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Konfirmasi Hapus'),
+                            content: const Text(
+                                'Apakah Anda yakin ingin menghapus pertemuan ini?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text('Batal'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('Hapus'),
+                              ),
+                            ],
                           ),
-                        ),
-                      );
-                    },
+                        );
+
+                        if (confirmDelete == true) {
+                          _deletePertemuan(context, pertemuan.id);
+                        }
+                      },
+                    ),
+                    const Icon(Icons.arrow_forward_ios),
+                  ],
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailPertemuanPage(
+                        pertemuanId: pertemuan.id,
+                        classId: classId,
+                      ),
+                    ),
                   );
                 },
               );

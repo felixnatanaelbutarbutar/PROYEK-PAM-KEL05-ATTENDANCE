@@ -19,7 +19,7 @@ class AddStudentPage extends StatefulWidget {
 class _AddStudentPageState extends State<AddStudentPage> {
   final Map<String, bool> _selectedStudents = {};
   String _selectedKelas = 'Semua'; // Default untuk filter kelas
-  final List<String> _kelasOptions = ['Semua', '31TI1', '31TI2', '31TI3'];
+  final List<String> _kelasOptions = ['Semua', '32TI1', '32TI2', '42TRPL1', '42TRPL2'];
   bool _selectAll = false;
 
   Future<List<Map<String, dynamic>>> _fetchStudents() async {
@@ -105,8 +105,15 @@ class _AddStudentPageState extends State<AddStudentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: true,
-        backgroundColor: Colors.blueGrey[900],
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue, Colors.indigo],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         title: Text(
           'Tambah Mahasiswa',
@@ -116,10 +123,12 @@ class _AddStudentPageState extends State<AddStudentPage> {
             color: Colors.white,
           ),
         ),
+        centerTitle: true,
         actions: [
           IconButton(
             onPressed: _saveStudents,
-            icon: Icon(Icons.save),
+            icon: Icon(Icons.save,
+                color: Colors.white), // Changed icon color to white
           ),
         ],
       ),
@@ -138,7 +147,8 @@ class _AddStudentPageState extends State<AddStudentPage> {
           ),
           // Dropdown filter
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -158,12 +168,14 @@ class _AddStudentPageState extends State<AddStudentPage> {
                   return Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Terjadi kesalahan saat memuat data.'));
+                  return Center(
+                      child: Text('Terjadi kesalahan saat memuat data.'));
                 }
 
                 final students = snapshot.data ?? [];
                 if (students.isEmpty) {
-                  return Center(child: Text('Tidak ada mahasiswa yang tersedia.'));
+                  return Center(
+                      child: Text('Tidak ada mahasiswa yang tersedia.'));
                 }
 
                 for (var student in students) {
@@ -193,7 +205,8 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             Text('Pilih Semua'),
                             Checkbox(
                               value: _selectAll,
-                              onChanged: (value) => _toggleSelectAll(value, students),
+                              onChanged: (value) =>
+                                  _toggleSelectAll(value, students),
                             ),
                           ],
                         ),
@@ -213,7 +226,8 @@ class _AddStudentPageState extends State<AddStudentPage> {
                               value: _selectedStudents[studentId] ?? false,
                               onChanged: (isChecked) {
                                 setState(() {
-                                  _selectedStudents[studentId] = isChecked ?? false;
+                                  _selectedStudents[studentId] =
+                                      isChecked ?? false;
                                 });
                               },
                             ),
