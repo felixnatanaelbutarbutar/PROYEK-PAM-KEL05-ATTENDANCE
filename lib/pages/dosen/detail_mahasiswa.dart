@@ -26,8 +26,10 @@ class DetailMahasiswaPage extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: Colors.white,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.blueAccent,
       ),
       body: FutureBuilder<DocumentSnapshot>(

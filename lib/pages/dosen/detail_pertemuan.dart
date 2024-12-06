@@ -13,12 +13,13 @@ class DetailPertemuanPage extends StatelessWidget {
     required this.classId,
   }) : super(key: key);
 
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         flexibleSpace: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Colors.blue, Colors.indigo],
               begin: Alignment.topLeft,
@@ -53,15 +54,17 @@ class DetailPertemuanPage extends StatelessWidget {
             return const Center(child: Text('Data pertemuan tidak ditemukan.'));
           }
 
-          final pertemuanData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
-          final attendance = pertemuanData['attendance'] as Map<String, dynamic>? ?? {};
+          final pertemuanData =
+              snapshot.data!.data() as Map<String, dynamic>? ?? {};
+          final attendance =
+              pertemuanData['attendance'] as Map<String, dynamic>? ?? {};
           final students = pertemuanData['students'] as List<dynamic>? ?? [];
 
           // Membuat daftar mahasiswa berdasarkan students dan attendance
           List<Map<String, dynamic>> studentList = students.map((student) {
             final studentNim = student['nim'] ?? 'N/A';
             final studentName = student['name'] ?? 'Unknown';
-            final status = attendance[studentNim] ?? 'Tidak Hadir'; // Ambil status berdasarkan nim
+            final status = attendance[studentNim] ?? 'Tidak Hadir';
             return {
               'nim': studentNim,
               'name': studentName,
@@ -76,7 +79,8 @@ class DetailPertemuanPage extends StatelessWidget {
           String formattedDate = '-';
           if (pertemuanData['tanggal'] != null) {
             final timestamp = pertemuanData['tanggal'] as Timestamp;
-            formattedDate = DateFormat('dd MMMM yyyy').format(timestamp.toDate());
+            formattedDate =
+                DateFormat('dd MMMM yyyy').format(timestamp.toDate());
           }
 
           return SingleChildScrollView(
@@ -85,45 +89,57 @@ class DetailPertemuanPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header: Judul dan Tanggal Pertemuan
-                Card(
-                  elevation: 5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Judul Pertemuan',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                Container(
+                  width: double
+                      .infinity, // Membuat Card selebar mungkin sesuai parent-nya
+                  child: Card(
+                    elevation: 7,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(
+                          12.0), // Tambahkan padding agar lebih proporsional
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Judul Pertemuan',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          pertemuanData['judul'] ?? '-',
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Tanggal',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          const SizedBox(height: 4),
+                          Text(
+                            pertemuanData['judul'] ?? '-',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          formattedDate,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(
+                            'Tanggal',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
 
                 // Tabel Daftar Kehadiran
@@ -143,6 +159,7 @@ class DetailPertemuanPage extends StatelessWidget {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
+                      columnSpacing: 20,
                       headingTextStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

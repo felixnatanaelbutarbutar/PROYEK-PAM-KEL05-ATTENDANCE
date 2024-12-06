@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proyek_pam_kel5/pages/auth/login_page.dart';
 import 'package:proyek_pam_kel5/pages/dosen/dosen_profile_page.dart';
 import 'manage_class_page.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 class DosenHomePage extends StatelessWidget {
   final String dosenId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -259,11 +260,23 @@ class DosenHomePage extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     try {
+      // Hapus data email dari SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('email');
+
+      // Logout dari Firebase
       await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacementNamed(context, '/login');
+
+      // Navigasi ke halaman login
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (route) => false,
+      );
     } catch (e) {
+      // Tampilkan pesan error jika logout gagal
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal logout. Silakan coba lagi.')),
+        SnackBar(content: Text('Gagal logout: $e')),
       );
     }
   }
