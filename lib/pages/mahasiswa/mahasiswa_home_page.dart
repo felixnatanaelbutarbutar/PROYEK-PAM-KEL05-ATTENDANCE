@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proyek_pam_kel5/pages/auth/login_page.dart';
 import 'class_detail_page.dart';
 import 'package:proyek_pam_kel5/pages/mahasiswa/profil_page_mahasiswa.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MahasiswaHomePage extends StatefulWidget {
   @override
@@ -15,8 +17,26 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
   bool isGridView = false; // Toggle between grid and list view
 
   Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushReplacementNamed('/login');
+    try {
+      // Hapus data email dari SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('email');
+
+      // Logout dari Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigasi ke halaman login
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      // Tampilkan pesan error jika logout gagal
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal logout: $e')),
+      );
+    }
   }
 
   @override
@@ -24,8 +44,10 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
-          padding: const EdgeInsets.only(left: 7.0),
+          padding: const EdgeInsets.only(left: 1.0),
           child: IconButton(
+            iconSize: 30, // Ukuran ikon
+            padding: const EdgeInsets.all(7.0), // Atur padding untuk area tekan
             icon: const Icon(Icons.person_outline, color: Colors.white),
             onPressed: () {
               Navigator.push(
@@ -37,7 +59,7 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
             },
           ),
         ),
-        leadingWidth: 30, // Sesuaikan lebar leading
+        leadingWidth: 30,
         title: Text(
           'Dashboard Mahasiswa',
           style: GoogleFonts.poppins(
@@ -59,7 +81,8 @@ class _MahasiswaHomePageState extends State<MahasiswaHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _logout(context),
+            onPressed: () =>
+                _logout(context), // Gunakan fungsi logout yang baru
           ),
           IconButton(
             icon: Icon(
