@@ -12,24 +12,23 @@ _DelCheckIn adalah aplikasi absensi modern berbasis Flutter, dirancang untuk mem
 - **Manajemen Pertemuan Kelas**
   - Buat pertemuan baru untuk kelas.
   - Rekam kehadiran mahasiswa berdasarkan pertemuan.
+  - Buat Pengumuman untuk kelas.
   - Lihat detail pertemuan termasuk daftar hadir, daftar absen, dan statistik kehadiran.
 
 - **Sistem Login dan Registrasi**
-  - Setiap pengguna (pengajar) memiliki akun terpisah.
+  - Setiap pengguna (dosen) memiliki akun terpisah.
   - Data absensi dan pertemuan tersimpan unik untuk setiap pengguna.
 
 - **Persistensi Data dengan Shared Preferences**
   - Data pengguna, mahasiswa, dan absensi disimpan secara lokal.
   - Setiap pengguna hanya dapat melihat data yang mereka miliki.
 
-- **Antarmuka yang Responsif dan User-Friendly**
-  - Desain yang menarik dan mudah digunakan.
-  - Kompatibel dengan berbagai ukuran layar perangkat.
+
 
 ## 🛠 Teknologi yang Digunakan
 
 - **Bahasa Pemrograman**: Dart (Flutter Framework)
-- **Penyimpanan Data**: Shared Preferences
+- **Penyimpanan Data**: Firebase & Shared Preferences 
 - **IDE**: Visual Studio Code / Android Studio
 - **State Management**: SetState dan Future Builder
 

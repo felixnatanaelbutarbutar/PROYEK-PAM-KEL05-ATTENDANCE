@@ -1,147 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 class DetailMahasiswaPage extends StatelessWidget {
-  final String studentId;
+  final String nim; // NIM Mahasiswa
+  final String classId; // ID Kelas
 
-  const DetailMahasiswaPage({Key? key, required this.studentId}) : super(key: key);
-
-  // Fungsi untuk memformat tanggal
-  String _formatDate(dynamic rawDate) {
-    if (rawDate is Timestamp) {
-      final date = rawDate.toDate();
-      return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(date);
-    }
-    return "Tanggal tidak valid";
-  }
+  const DetailMahasiswaPage(
+      {Key? key, required this.nim, required this.classId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Detail Mahasiswa',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
+        title: const Text(
+          'Rekap Kehadiran Mahasiswa',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
         backgroundColor: Colors.blueAccent,
+        centerTitle: true,
       ),
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('users').doc(studentId).get(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('classes')
+            .doc(classId)
+            .collection('pertemuan')
+            .snapshots(),
+        builder: (context, pertemuanSnapshot) {
+          if (pertemuanSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
-            return const Center(child: Text('Terjadi kesalahan saat memuat data.'));
+          if (!pertemuanSnapshot.hasData ||
+              pertemuanSnapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('Tidak ada data pertemuan.'));
           }
 
-          final studentData = snapshot.data!.data() as Map<String, dynamic>;
-          final name = studentData['name'] ?? 'N/A';
-          final nim = studentData['nim'] ?? 'N/A';
-          final classId = studentData['kelas'] ?? 'N/A';
+          final pertemuanDocs = pertemuanSnapshot.data!.docs;
+          int totalHadir = 0;
+          int totalPertemuan = pertemuanDocs.length;
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Nama: $name',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          // Hitung total kehadiran
+          for (var pertemuan in pertemuanDocs) {
+            final data = pertemuan.data() as Map<String, dynamic>;
+            final attendanceData =
+                data['attendance'] as Map<String, dynamic>?; // Ambil attendance
+
+            if (attendanceData != null && attendanceData.containsKey(nim)) {
+              final status =
+                  attendanceData[nim]; // Ambil status berdasarkan nim
+              if (status == 'Hadir') {
+                totalHadir++;
+              }
+            }
+          }
+
+          double kehadiranPersentase =
+              totalPertemuan > 0 ? (totalHadir / totalPertemuan) * 100 : 0;
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // const Text(
+                //   'Rekap Kehadiran Mahasiswa',
+                //   style: TextStyle(
+                //       fontSize: 22,
+                //       fontWeight: FontWeight.bold,
+                //       color: Colors.blueAccent),
+                // ),
+                const SizedBox(height: 20),
+
+                // Card untuk detail absensi
+                Card(
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  const SizedBox(height: 8),
-                  Text('NIM: $nim', style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 8),
-                  Text('Kelas: $classId', style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Keterangan Absensi',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('classes')
-                        .doc(classId)
-                        .collection('pertemuan')
-                        .snapshots(),
-                    builder: (context, pertemuanSnapshot) {
-                      if (!pertemuanSnapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      if (pertemuanSnapshot.hasError) {
-                        return const Text('Gagal memuat data absensi.');
-                      }
-
-                      final pertemuanDocs = pertemuanSnapshot.data!.docs;
-
-                      if (pertemuanDocs.isEmpty) {
-                        return const Text('Tidak ada catatan absensi.');
-                      }
-
-                      int totalHadir = 0;
-                      int totalPertemuan = 0;
-
-                      final absensiWidgets = pertemuanDocs.map((pertemuan) {
-                        final data = pertemuan.data() as Map<String, dynamic>;
-                        final attendance = data['attendance'] as Map<String, dynamic>;
-                        final status = attendance[nim] ?? 'Tidak Hadir';
-                        final tanggal = _formatDate(data['tanggal']);
-                        final judul = data['judul'] ?? 'Pertemuan';
-
-                        if (status == 'Hadir') totalHadir++;
-                        totalPertemuan++;
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Text(
-                            'Judul: $judul\nTanggal: $tanggal\nStatus: $status',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        );
-                      }).toList();
-
-                      final attendancePercentage = totalPertemuan > 0
-                          ? (totalHadir / totalPertemuan) * 100
-                          : 0.0;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...absensiWidgets,
-                          const SizedBox(height: 20),
-                          Text('Total Pertemuan: $totalPertemuan', style: const TextStyle(fontSize: 16)),
-                          Text('Kehadiran: $totalHadir', style: const TextStyle(fontSize: 16)),
-                          Text(
-                            'Persentase Kehadiran: ${attendancePercentage.toStringAsFixed(1)}%',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          Text(
-                            'Status UTS/UAS: ${attendancePercentage >= 75.0 ? 'Layak' : 'Tidak Layak'}',
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.event_available,
+                              color: Colors.blueAccent, size: 40),
+                          title: Text(
+                            'Total Pertemuan',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: attendancePercentage >= 75.0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
-                        ],
-                      );
-                    },
+                          trailing: Text(
+                            '$totalPertemuan',
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.black54),
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.check_circle,
+                              color: Colors.green, size: 40),
+                          title: Text(
+                            'Total Kehadiran',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          trailing: Text(
+                            '$totalHadir',
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.black54),
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.percent,
+                              color: Colors.orange, size: 40),
+                          title: Text(
+                            'Persentase Kehadiran',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          trailing: Text(
+                            '${kehadiranPersentase.toStringAsFixed(1)}%',
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.black54),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Progress bar untuk persentase kehadiran
+                Text(
+                  'Progres Kehadiran:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                LinearProgressIndicator(
+                  value: kehadiranPersentase / 100,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    kehadiranPersentase >= 75.0 ? Colors.green : Colors.red,
+                  ),
+                  minHeight: 8,
+                ),
+                const SizedBox(height: 20),
+
+                // Status kelayakan
+                Center(
+                  child: Text(
+                    kehadiranPersentase >= 75.0
+                        ? 'Status: Layak UTS/UAS ✅'
+                        : 'Status: Tidak Layak UTS/UAS ❌',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: kehadiranPersentase >= 75.0
+                          ? Colors.green
+                          : Colors.red,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },

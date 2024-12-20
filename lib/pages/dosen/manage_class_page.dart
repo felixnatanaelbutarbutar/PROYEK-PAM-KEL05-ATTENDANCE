@@ -104,14 +104,15 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
   }
 
   void _openDaftarPengumuman() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ListPengumumanPage(classId: widget.classId,),
-    ),
-  );
-}
-
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ListPengumumanPage(
+          classId: widget.classId,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +159,10 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
             padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [const Color.fromARGB(255, 66, 121, 215), Colors.indigo],
+                colors: [
+                  const Color.fromARGB(255, 66, 121, 215),
+                  Colors.indigo
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -336,7 +340,8 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => DetailMahasiswaPage(
-                                        studentId: studentId,
+                                        nim: data['nim'], // Mengambil NIM dari data mahasiswa
+                                        classId: widget.classId, // ID kelas yang sedang aktif
                                       ),
                                     ),
                                   );
